@@ -11,11 +11,11 @@ function UpdateLeaderboard(playerTracker, leaderboard, leaderboardType) {
 
 module.exports = UpdateLeaderboard;
 
-UpdateLeaderboard.prototype.build = function(protocol) {
+UpdateLeaderboard.prototype.build = function (protocol) {
     switch (this.leaderboardType) {
         case 48:
             // UserText
-            return this.buildUserText(protocol);
+            return protocol < 13 ? this.buildUserText(protocol) : this.buildUserText13();
         case 49:
             // FFA
             if (protocol < 6)
@@ -34,7 +34,7 @@ UpdateLeaderboard.prototype.build = function(protocol) {
     }
 }
 
-// UserText
+// UserText protocol 5/6/11
 UpdateLeaderboard.prototype.buildUserText = function (protocol) {
     var writer = new BinaryWriter();
     writeCount(writer, 0x31, this.leaderboard.length);
@@ -44,6 +44,17 @@ UpdateLeaderboard.prototype.buildUserText = function (protocol) {
         if (protocol < 11) writer.writeUInt32(0);
         if (protocol < 6) writer.writeStringZeroUnicode(item);
         else writer.writeStringZeroUtf8(item);
+    }
+    return writer.toBuffer();
+};
+
+// UserText protocol 13
+UpdateLeaderboard.prototype.buildUserText13 = function () {
+    var writer = new BinaryWriter();
+    writer.writeUInt8(0x33);
+    for (var i = 0; i < this.leaderboard.length; i++) {
+        writer.writeUInt8(0x02);
+        writer.writeStringZeroUtf8(this.leaderboard[i]);
     }
     return writer.toBuffer();
 };
