@@ -55,7 +55,7 @@ Commands.list = {
                     "│ tp [X] [Y]                   │ Teleports player(s) to XY coordinates     │\n"+
                     "│ replace [PlayerID] [entity]  │ Replaces a player with an entity          │\n"+
                     "│ pop [PlayerID]               │ Pops a player with a virus                │\n"+
-                    "| explode [PlayerID]           | Explodes a player into ejected mass       |\n"+
+                    "│ explode [PlayerID]           │ Explodes a player into ejected mass       │\n"+
                     "│                                                                          │\n"+
                     "│                          ----Server Commands----                         │\n"+
                     "│                                                                          │\n"+
@@ -68,7 +68,7 @@ Commands.list = {
                     "│ banlist                      │ Get list of banned IPs.                   │\n"+
                     "│ mute [PlayerID]              │ Mute player from chat                     │\n"+
                     "│ unmute [PlayerID]            │ Unmute player from chat                   │\n"+
-                    "| lms                          | Starts/ends last man standing             |\n"+
+                    "│ lms                          │ Starts/ends last man standing             │\n"+
                     "│                                                                          │\n"+
                     "│                          ----Miscellaneous----                           │\n"+
                     "│                                                                          │\n"+
@@ -102,7 +102,7 @@ Commands.list = {
                     "│ c                           │ Alias for change                           │\n"+
                     "│ n                           │ Alias for name                             │\n"+
                     "│ rep                         │ Alias for replace                          │\n"+
-                    "| e                           | Alias for explode                          |\n"+
+                    "│ e                           │ Alias for explode                          │\n"+
                     "└─────────────────────────────┴────────────────────────────────────────────┘");
     },
     debug: function(gameServer, split) {
