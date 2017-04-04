@@ -58,7 +58,7 @@ function GameServer() {
         serverPort: 443,            // Server port which will be used to listen for incoming connections
         serverBind: '0.0.0.0',      // Server network interface which will be used to listen for incoming connections (0.0.0.0 for all IPv4 interfaces)
         serverTracker: 0,           // Set to 1 if you want to show your server on the tracker http://ogar.mivabe.nl/master (check that your server port is opened for external connections first!)
-        serverGamemode: 0,          // Gamemodes: 0 = FFA, 1 = Teams, 2 = Experimental, 3 = Rainbow
+        serverGamemode: 0,          // Gamemodes: 0 = FFA, 1 = Teams, 2 = Experimental, 3 = Rainbow, 4 = Hunger Games
         serverBots: 0,              // Number of player bots to spawn (Experimental)
         serverViewBaseX: 1920,      // Base view distance of players. Warning: high values may cause lag! Min value is 1920x1080
         serverViewBaseY: 1080,      // min value is 1920x1080
