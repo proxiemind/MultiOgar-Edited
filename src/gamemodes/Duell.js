@@ -1,9 +1,4 @@
 var Mode = require('./Mode');
-// var Vec2 = require('../modules/Vec2');
-// var Entity = require('../entity');
-// var Logger = require('../modules/Logger');
-
-
 
 
 function Duell() {
@@ -30,7 +25,8 @@ function Duell() {
     
     // Config
     this.oneSecondInterval = 25;    // GameServer.js@timerLoop:~534 | ~25 is a factor of one second within this implementation
-    this.matchLength = 10;           // Minutes
+    this.matchLength = 10;          // Minutes
+    this.joinInterval = 10;         // Seconds
 
 }
 
@@ -41,23 +37,22 @@ Duell.prototype = new Mode();
 
 // Gamemode Specific Functions
 
-// Override
-
-
 Duell.prototype.startGame = function(gameServer) {
 
+    if(this.triggerOneSecond) {
+        this.counter = this.joinInterval;
+        return;
+    }
+
     this.triggerOneSecond = true;
-    this.counter = 10;
+    this.counter = this.joinInterval;
     this.restarting = false;
     this.events.push(0);
 
 };
 
-
 Duell.prototype.triggerGameStart = function(gameServer) {
 
-
-    // Logger.warn('YEAP, IT WILL WORK');
     gameServer.disableSpawn = true;
 
     for(var i = 0; i < gameServer.clients.length; i++)
@@ -65,9 +60,7 @@ Duell.prototype.triggerGameStart = function(gameServer) {
 
     this.m = this.matchLength;
 
-
 };
-
 
 Duell.prototype.triggerGameEnd = function(gameServer) {
 
@@ -87,7 +80,6 @@ Duell.prototype.triggerGameEnd = function(gameServer) {
 
 };
 
-
 Duell.prototype.setupArena = function(gameServer) {
 
     while (gameServer.nodesEjected.length)
@@ -98,6 +90,35 @@ Duell.prototype.setupArena = function(gameServer) {
 
 };
 
+Duell.prototype.oneSecondEvents = function(gameServer) {
+
+    if (this.counter > 0) {
+        this.counter--;
+        return;
+    }
+
+
+    if (this.s > 0) {
+        this.s--;
+        return;
+    } else if (this.m > 0){
+        this.m--;
+        this.s = 59;
+        return;
+    }
+
+
+    for(var i = 0; i < this.events.length; i++) {
+        var event = this.events.splice(0, 1);
+        if(event == 0)
+            this.triggerGameStart(gameServer);
+        else if(event == 1)
+            this.triggerGameEnd(gameServer);
+    }
+
+};
+
+// Override
 
 Duell.prototype.onPlayerSpawn = function(gameServer, player) {
 
@@ -115,23 +136,19 @@ Duell.prototype.onPlayerSpawn = function(gameServer, player) {
     for(var i = 0; i < gameServer.clients.length; i++)
         if(gameServer.clients[i].playerTracker.cells.length)
             this.connectedPlayers++;
-                // break; // No point to check further, (+)2 players already there
 
 
-    if (this.connectedPlayers > 1) {
+    if(this.connectedPlayers > 1) {
         // @2. Waiting for second player to trigger actual game start
         this.startGame(gameServer);
 
     } else {
         // @1. 1st player (re)join server, (re)setup the arena
-
         this.setupArena(gameServer);
 
     }
 
-
 };
-
 
 Duell.prototype.updateLB = function(gameServer, lb) {
 
@@ -145,7 +162,7 @@ Duell.prototype.updateLB = function(gameServer, lb) {
         return;
     }
 
-    var players = 0;
+    players = 0;
     for (var i = 0, pos = 0; i < gameServer.clients.length; i++) {
         var player = gameServer.clients[i].playerTracker;
         if (player.isRemoved || !player.cells.length || 
@@ -175,9 +192,7 @@ Duell.prototype.updateLB = function(gameServer, lb) {
 
 
     // Monitor Game
-    if(!this.restarting && (players == 1 || !(this.m > 0 || this.s > 0))) {
-
-        // Logger.warn('TRIGGER END GAME');
+    if(!this.restarting && (players <= 1 || !(this.m > 0 || this.s > 0))) {
 
         if(players > 1)
             for(var i = 0; i < gameServer.clients.length; i++)
@@ -201,16 +216,14 @@ Duell.prototype.updateLB = function(gameServer, lb) {
 
     lb.push('--------');
     lb.push('Time Limit:');
-    lb.push(this.m + ':' + (this.s < 10 ? '0': '') + this.s);   
+    lb.push(this.m + ':' + (this.s < 10 ? '0': '') + this.s);
 
 };
-
 
 Duell.prototype.onTick = function(gameServer) {
 
     if(this.triggerOneSecond)
         if(this.tickOneSecond >= this.oneSecondInterval) {
-            // Logger.warn('onTick');
             this.tickOneSecond = 0;
             this.oneSecondEvents(gameServer);
 
@@ -218,39 +231,5 @@ Duell.prototype.onTick = function(gameServer) {
             this.tickOneSecond++;
 
         }
-
-
-};
-
-
-Duell.prototype.oneSecondEvents = function(gameServer) {
-
-    if (this.counter > 0) {
-        this.counter--;
-        // Logger.warn('COUNTER');
-        return;
-    }
-
-
-    if (this.s > 0) {
-        // Logger.warn('TIME');
-        this.s--;
-        return;
-    } else if (this.m > 0){
-        this.m--;
-        this.s = 59;
-        return;
-    }
-
-
-    for(var i = 0; i < this.events.length; i++) {
-        // Logger.warn('TRIGGER AND REMOVE EVENT');
-        // this.events[0];
-        var event = this.events.splice(0, 1);
-        if(event == 0)
-            this.triggerGameStart(gameServer);
-        else if(event == 1)
-            this.triggerGameEnd(gameServer);
-    }
 
 };
