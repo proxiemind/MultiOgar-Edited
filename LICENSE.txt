@@ -1,32 +1,3 @@
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-    Devin Ryan (https://github.com/forairan) saught out to have his license
-       listed. So this license can be found at the following location.
-
-                          Copyright 2015 Devin Ryan
-       Licensed under the Apache License, Version 2.0 (the "License");
-      you may not use this project except in compliance with the License.
-
-        See https://github.com/OgarProject/Ogar/blob/master/LICENSE.md
-
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-                         * INTERSTELLAR POLICE WARNING *
-
- As provided by the Galactic Treaty of 4410, this computer software product is
- hereby declared the Interllectual Property of the human author, Barbosik.
- All rights are henceforth reserved in space and time.
-
- Provision for the protection of Interlllectual Property is covered under
- Section 8.9.1A-f of the Intengible Property Act of 4506, ratified by all
- beings except the Gazurtoids of planet Gazuria.
-
- WARNING: Any being caught with an unautorized copy or version of this software
- product will be punished by Interstellar Corporate Police. Punishment may 
- include the annihilation of the offending beings planet.
-
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -228,4 +199,3 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
