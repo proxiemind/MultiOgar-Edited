@@ -1,13 +1,13 @@
-var Mode = require('./Mode');
+var Duell = require('./Duell');
 var Vec2 = require('../modules/Vec2');
 var Entity = require('../entity');
 
 
 function Hunger() {
 
-    Mode.apply(this, Array.prototype.slice.call(arguments));
+    Duell.apply(this, Array.prototype.slice.call(arguments));
 
-    this.ID = 4;
+    this.ID = 5;
     this.name = "Hunger Games";
     this.specByLeaderboard = false;
     this.packetLB = 48;
@@ -15,75 +15,22 @@ function Hunger() {
     // Gamemode Specific Variables
     this.aFixedPlayerPos = [];
     this.aFixedVirusPos = [];
-    this.connectedPlayers = 0;
-    this.restarting = false;
-    
-    this.triggerOneSecond = false;
-    this.tickOneSecond = 0;
 
-    this.counter = 0;
-    this.m = 0;
-    this.s = 0;
-
-    this.events = [];
-    
     // Config
-    this.oneSecondInterval = 25;    // GameServer.js@timerLoop:~534 | ~25 is a factor of one second within this implementation
-    this.matchLength = 20;          // Minutes
-    this.joinInterval = 15;         // Seconds
+    this.matchLength = 15;          // Minutes
+    this.joinInterval = 10;         // Seconds
+    // this.restartInterval = 7;       // Seconds
 }
 
 
 module.exports = Hunger;
-Hunger.prototype = new Mode();
+Hunger.prototype = new Duell();
 
 
 // Gamemode Specific Functions
+// Override
 
-Hunger.prototype.startGame = function (gameServer) {
-
-    if(this.triggerOneSecond) {
-        this.counter = this.joinInterval;
-        return;
-    }
-
-    this.triggerOneSecond = true;
-    this.counter = this.joinInterval;
-    this.restarting = false;
-    this.events.push(0);
-
-};
-
-Hunger.prototype.triggerGameStart = function(gameServer) {
-
-    gameServer.disableSpawn = true;
-
-    for(var i = 0; i < gameServer.clients.length; i++)
-        gameServer.clients[i].playerTracker.frozen = false;
-
-    this.m = this.matchLength;
-
-};
-
-Hunger.prototype.triggerGameEnd = function(gameServer) {
-
-    for(var i = 0; i < gameServer.clients.length; i++) {
-
-        var playerTracker = gameServer.clients[i].playerTracker;
-        while(playerTracker.cells.length > 0)
-            gameServer.removeNode(playerTracker.cells[0]);
-
-    }
-
-    gameServer.disableSpawn = false;
-    this.triggerOneSecond = false;
-    this.restarting = false;
-    this.counter = 0;
-    this.connectedPlayers = 0;
-
-};
-
-Hunger.prototype.setupArena = function (gameServer) {
+Hunger.prototype.setupArena = function(gameServer) {
 
     while (gameServer.nodesEjected.length)
         gameServer.removeNode(gameServer.nodesEjected[0]);
@@ -105,40 +52,25 @@ Hunger.prototype.setupArena = function (gameServer) {
 
 };
 
-Hunger.prototype.oneSecondEvents = function(gameServer) {
+Hunger.prototype.onPlayerSpawn = function(gameServer, player) {
 
-    if (this.counter > 0) {
-        this.counter--;
-        return;
+    if(gameServer.disableSpawn) {
+
+        if(this.botsOnly && !player.hasOwnProperty('splitCooldown'))
+            this.triggerGameEnd(gameServer);    // Insta kill of server, because real player wants to join
+        else
+            return;
+
     }
 
 
-    if (this.s > 0) {
-        this.s--;
-        return;
-    } else if (this.m > 0){
-        this.m--;
-        this.s = 59;
-        return;
-    }
+    if(!player.hasOwnProperty('splitCooldown'))
+        for(var i = 0; i < gameServer.clients.length; i++)
+            if(gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
+                gameServer.clients[i].close();
+                break;
 
-
-    for(var i = 0; i < this.events.length; i++) {
-        var event = this.events.splice(0, 1);
-        if(event == 0)
-            this.triggerGameStart(gameServer);
-        else if(event == 1)
-            this.triggerGameEnd(gameServer);
-    }
-
-};
-
-// Override
-
-Hunger.prototype.onPlayerSpawn = function (gameServer, player) {
-
-    if(gameServer.disableSpawn)
-        return;
+            }
 
 
     player.setColor(gameServer.getRandomColor());
@@ -149,12 +81,20 @@ Hunger.prototype.onPlayerSpawn = function (gameServer, player) {
 
     this.connectedPlayers = 0;
     for(var i = 0; i < gameServer.clients.length; i++)
-        if(gameServer.clients[i].playerTracker.cells.length)
+        if(gameServer.clients[i].playerTracker.cells.length) {
+
             this.connectedPlayers++;
+            if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
+
+                this.botsOnly = false;
+
+            }
+
+        }
 
 
     if(this.connectedPlayers > 1) {
-        // @2. Waiting for second player to trigger actual game start (each next player will delay server start for 15 seconds)
+        // @2. Waiting for second player to trigger actual game start
         this.startGame(gameServer);
 
     } else {
@@ -165,7 +105,7 @@ Hunger.prototype.onPlayerSpawn = function (gameServer, player) {
 
 };
 
-Hunger.prototype.updateLB = function (gameServer, lb) {
+Hunger.prototype.updateLB = function(gameServer, lb) {
 
     gameServer.leaderboardType = this.packetLB;
 
@@ -212,7 +152,7 @@ Hunger.prototype.updateLB = function (gameServer, lb) {
                 gameServer.clients[i].playerTracker.frozen = true;
         
         this.m = this.s = 0;
-        this.counter = 5;
+        this.counter = this.restartInterval;
         this.restarting = true;
         this.events.push(1);
 
@@ -232,20 +172,6 @@ Hunger.prototype.updateLB = function (gameServer, lb) {
     lb[1] = players + '/' + gameServer.config.serverMaxConnections;
     lb[2] = 'Time Limit:';
     lb[3] = this.m + ':' + (this.s < 10 ? '0': '') + this.s;
-
-};
-
-Hunger.prototype.onTick = function(gameServer) {
-
-    if(this.triggerOneSecond)
-        if(this.tickOneSecond >= this.oneSecondInterval) {
-            this.tickOneSecond = 0;
-            this.oneSecondEvents(gameServer);
-
-        } else {
-            this.tickOneSecond++;
-
-        }
 
 };
 

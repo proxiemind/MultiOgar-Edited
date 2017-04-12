@@ -5,12 +5,13 @@ function Duell() {
 
     Mode.apply(this, Array.prototype.slice.call(arguments));
 
-    this.ID = 5;
+    this.ID = 4;
     this.name = "Duell";
-    this.specByLeaderboard = true;
+    this.specByLeaderboard = false;
     this.packetLB = 48;
 
     // Gamemode Specific Variables
+    this.botsOnly = true;
     this.connectedPlayers = 0;
     this.restarting = false;
     
@@ -24,10 +25,10 @@ function Duell() {
     this.events = [];
     
     // Config
-    this.oneSecondInterval = 25;    // GameServer.js@timerLoop:~534 | ~25 is a factor of one second within this implementation
-    this.matchLength = 10;          // Minutes
-    this.joinInterval = 10;         // Seconds
-
+    this.oneSecondInterval = 25;        // GameServer.js@timerLoop:~534 | ~25 is a factor of one second within this implementation
+    this.matchLength = 10;              // Minutes
+    this.joinInterval = 5;              // Seconds
+    this.restartInterval = 7;           // Seconds
 }
 
 
@@ -53,6 +54,13 @@ Duell.prototype.startGame = function(gameServer) {
 
 Duell.prototype.triggerGameStart = function(gameServer) {
 
+
+    var botsToAdd = gameServer.config.serverBots - this.connectedPlayers;
+    for(var i = 0; i < botsToAdd; i++)
+        gameServer.bots.addBot();
+
+    this.counter = 0;
+
     gameServer.disableSpawn = true;
 
     for(var i = 0; i < gameServer.clients.length; i++)
@@ -63,6 +71,8 @@ Duell.prototype.triggerGameStart = function(gameServer) {
 };
 
 Duell.prototype.triggerGameEnd = function(gameServer) {
+
+    this.m = this.s = 0;
 
     for(var i = 0; i < gameServer.clients.length; i++) {
 
@@ -77,6 +87,7 @@ Duell.prototype.triggerGameEnd = function(gameServer) {
     this.restarting = false;
     this.counter = 0;
     this.connectedPlayers = 0;
+    this.botsOnly = true;
 
 };
 
@@ -122,8 +133,23 @@ Duell.prototype.oneSecondEvents = function(gameServer) {
 
 Duell.prototype.onPlayerSpawn = function(gameServer, player) {
 
-    if(gameServer.disableSpawn)
-        return;
+    if(gameServer.disableSpawn) {
+
+        if(this.botsOnly && !player.hasOwnProperty('splitCooldown'))
+            this.triggerGameEnd(gameServer);    // Insta kill of server, because real player wants to join
+        else
+            return;
+
+    }
+
+
+    if(!player.hasOwnProperty('splitCooldown'))
+        for(var i = 0; i < gameServer.clients.length; i++)
+            if(gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
+                gameServer.clients[i].close();
+                break;
+
+            }
 
 
     player.setColor(gameServer.getRandomColor());
@@ -134,8 +160,16 @@ Duell.prototype.onPlayerSpawn = function(gameServer, player) {
 
     this.connectedPlayers = 0;
     for(var i = 0; i < gameServer.clients.length; i++)
-        if(gameServer.clients[i].playerTracker.cells.length)
+        if(gameServer.clients[i].playerTracker.cells.length) {
+
             this.connectedPlayers++;
+            if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
+
+                this.botsOnly = false;
+
+            }
+
+        }
 
 
     if(this.connectedPlayers > 1) {
@@ -177,7 +211,6 @@ Duell.prototype.updateLB = function(gameServer, lb) {
         lb.splice(j, 0, player);
         pos++;
     }
-    this.rankOne = lb[0];
 
     for (var i = 0; i < lb.length; i++)
         lb[i] = lb[i]._name;
@@ -199,7 +232,7 @@ Duell.prototype.updateLB = function(gameServer, lb) {
                 gameServer.clients[i].playerTracker.frozen = true;
         
         this.m = this.s = 0;
-        this.counter = 5;
+        this.counter = this.restartInterval;
         this.restarting = true;
         this.events.push(1);
 
