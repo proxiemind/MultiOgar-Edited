@@ -54,11 +54,6 @@ Duell.prototype.startGame = function(gameServer) {
 
 Duell.prototype.triggerGameStart = function(gameServer) {
 
-
-    var botsToAdd = gameServer.config.serverBots - this.connectedPlayers;
-    for(var i = 0; i < botsToAdd; i++)
-        gameServer.bots.addBot();
-
     this.counter = 0;
 
     gameServer.disableSpawn = true;
@@ -92,6 +87,11 @@ Duell.prototype.triggerGameEnd = function(gameServer) {
 };
 
 Duell.prototype.setupArena = function(gameServer) {
+
+    while (gameServer.nodesFood.length)
+        gameServer.removeNode(gameServer.nodesFood[0]);
+
+    
 
     while (gameServer.nodesEjected.length)
         gameServer.removeNode(gameServer.nodesEjected[0]);
@@ -129,27 +129,67 @@ Duell.prototype.oneSecondEvents = function(gameServer) {
 
 };
 
+Duell.prototype.balanceBots = function(gameServer) {
+
+    if(gameServer.disableSpawn)
+        return;
+
+    this.connectedPlayers = 0;
+    for(var i = 0; i < gameServer.clients.length; i++)
+        if(gameServer.clients[i].playerTracker.cells.length)
+            this.connectedPlayers++;
+
+    var botsRatio = gameServer.config.serverBots - this.connectedPlayers;
+    while(botsRatio !== 0) {
+
+        if(botsRatio > 0) {
+
+            gameServer.bots.addBot();
+            botsRatio--;
+            continue;
+
+        } else {
+
+            for(var i = 0; i < gameServer.clients.length; i++)
+                if(gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
+
+                    gameServer.clients[i].close();
+                    if(++botsRatio === 0)
+                        break;
+
+                }
+
+        }
+
+    }
+
+};
+
 // Override
 
 Duell.prototype.onPlayerSpawn = function(gameServer, player) {
 
     if(gameServer.disableSpawn) {
 
-        if(this.botsOnly && !player.hasOwnProperty('splitCooldown'))
-            this.triggerGameEnd(gameServer);    // Insta kill of server, because real player wants to join
-        else
+        if(!player.hasOwnProperty('splitCooldown')) {
+
+            this.botsOnly = true;
+
+            for(var i = 0; i < gameServer.clients.length; i++) {
+                if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown') && gameServer.clients[i].playerTracker.cells.length) {
+                    this.botsOnly = false;
+                    break;
+                }
+            }
+
+
+            if(this.botsOnly)
+                this.triggerGameEnd(gameServer);    // Insta kill of server, bc there are only bots on server
+
+        } else
             return;
 
     }
-
-
-    if(!player.hasOwnProperty('splitCooldown'))
-        for(var i = 0; i < gameServer.clients.length; i++)
-            if(gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
-                gameServer.clients[i].close();
-                break;
-
-            }
 
 
     player.setColor(gameServer.getRandomColor());
@@ -160,16 +200,8 @@ Duell.prototype.onPlayerSpawn = function(gameServer, player) {
 
     this.connectedPlayers = 0;
     for(var i = 0; i < gameServer.clients.length; i++)
-        if(gameServer.clients[i].playerTracker.cells.length) {
-
+        if(gameServer.clients[i].playerTracker.cells.length)
             this.connectedPlayers++;
-            if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
-
-                this.botsOnly = false;
-
-            }
-
-        }
 
 
     if(this.connectedPlayers > 1) {
@@ -189,6 +221,8 @@ Duell.prototype.updateLB = function(gameServer, lb) {
     gameServer.leaderboardType = this.packetLB;
 
     var players = this.connectedPlayers;
+
+    this.balanceBots(gameServer);
 
     if(players < 2) {
         lb[0] = 'Awaiting Players:';

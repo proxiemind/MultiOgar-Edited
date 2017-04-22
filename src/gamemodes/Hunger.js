@@ -32,6 +32,11 @@ Hunger.prototype = new Duell();
 
 Hunger.prototype.setupArena = function(gameServer) {
 
+    while (gameServer.nodesFood.length)
+        gameServer.removeNode(gameServer.nodesFood[0]);
+
+    
+
     while (gameServer.nodesEjected.length)
         gameServer.removeNode(gameServer.nodesEjected[0]);
 
@@ -56,41 +61,38 @@ Hunger.prototype.onPlayerSpawn = function(gameServer, player) {
 
     if(gameServer.disableSpawn) {
 
-        if(this.botsOnly && !player.hasOwnProperty('splitCooldown'))
-            this.triggerGameEnd(gameServer);    // Insta kill of server, because real player wants to join
-        else
+        if(!player.hasOwnProperty('splitCooldown')) {
+
+            this.botsOnly = true;
+
+            for(var i = 0; i < gameServer.clients.length; i++) {
+                if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown') && gameServer.clients[i].playerTracker.cells.length) {
+                    this.botsOnly = false;
+                    break;
+                }
+            }
+
+
+            if(this.botsOnly)
+                this.triggerGameEnd(gameServer);    // Insta kill of server, bc there are only bots on server
+
+        } else
             return;
 
     }
 
 
-    if(!player.hasOwnProperty('splitCooldown'))
-        for(var i = 0; i < gameServer.clients.length; i++)
-            if(gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
-                gameServer.clients[i].close();
-                break;
-
-            }
-
-
     player.setColor(gameServer.getRandomColor());
     player.frozen = true;
     // Spawn player
-    gameServer.spawnPlayer(player, this.aFixedPlayerPos[this.connectedPlayers]);
+    var spawnPlace = this.connectedPlayers >= 12 ? 0 : this.connectedPlayers;
+    gameServer.spawnPlayer(player, this.aFixedPlayerPos[spawnPlace]);
 
 
     this.connectedPlayers = 0;
     for(var i = 0; i < gameServer.clients.length; i++)
-        if(gameServer.clients[i].playerTracker.cells.length) {
-
+        if(gameServer.clients[i].playerTracker.cells.length)
             this.connectedPlayers++;
-            if(!gameServer.clients[i].playerTracker.hasOwnProperty('splitCooldown')) {
-
-                this.botsOnly = false;
-
-            }
-
-        }
 
 
     if(this.connectedPlayers > 1) {
@@ -112,6 +114,8 @@ Hunger.prototype.updateLB = function(gameServer, lb) {
     var tempLB = [];
 
     var players = this.connectedPlayers;
+
+    this.balanceBots(gameServer);
 
     lb[0] = 'Awaiting Players:';
     lb[1] = players + '/' + gameServer.config.serverMaxConnections;
