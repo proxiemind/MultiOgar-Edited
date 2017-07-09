@@ -44,8 +44,9 @@ UpdateLeaderboard.prototype.buildUserText13 = function () {
     var writer = new BinaryWriter();
     writer.writeUInt8(0x33);
     for (var i = 0; i < this.leaderboard.length; i++) {
+        var item = this.leaderboard[i] || "";
         writer.writeUInt8(0x02);
-        writer.writeStringZeroUtf8(this.leaderboard[i]);
+        writer.writeStringZeroUtf8(item);
     }
     return writer.toBuffer();
 };
