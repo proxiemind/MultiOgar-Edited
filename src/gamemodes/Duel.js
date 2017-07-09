@@ -1,12 +1,15 @@
 var Mode = require('./Mode');
+var Vec2 = require('../modules/Vec2');
+var Entity = require('../entity');
+var Logger = require('../modules/Logger');
 
 
-function Duell() {
+function Duel() {
 
     Mode.apply(this, Array.prototype.slice.call(arguments));
 
     this.ID = 4;
-    this.name = "Duell";
+    this.name = "Duel";
     this.specByLeaderboard = false;
     this.packetLB = 48;
 
@@ -32,13 +35,13 @@ function Duell() {
 }
 
 
-module.exports = Duell;
-Duell.prototype = new Mode();
+module.exports = Duel;
+Duel.prototype = new Mode();
 
 
 // Gamemode Specific Functions
 
-Duell.prototype.startGame = function(gameServer) {
+Duel.prototype.startGame = function(gameServer) {
 
     if(this.triggerOneSecond) {
         this.counter = this.joinInterval;
@@ -52,7 +55,7 @@ Duell.prototype.startGame = function(gameServer) {
 
 };
 
-Duell.prototype.triggerGameStart = function(gameServer) {
+Duel.prototype.triggerGameStart = function(gameServer) {
 
     this.counter = 0;
 
@@ -65,7 +68,7 @@ Duell.prototype.triggerGameStart = function(gameServer) {
 
 };
 
-Duell.prototype.triggerGameEnd = function(gameServer) {
+Duel.prototype.triggerGameEnd = function(gameServer) {
 
     this.m = this.s = 0;
 
@@ -83,25 +86,57 @@ Duell.prototype.triggerGameEnd = function(gameServer) {
     this.counter = 0;
     this.connectedPlayers = 0;
     this.botsOnly = true;
+    this.setupArena(gameServer);
 
 };
 
-Duell.prototype.setupArena = function(gameServer) {
+Duel.prototype.setupArena = function(gameServer) {
 
-    while (gameServer.nodesFood.length)
+    while(gameServer.nodesFood.length)
         gameServer.removeNode(gameServer.nodesFood[0]);
 
-    
-
-    while (gameServer.nodesEjected.length)
+    while(gameServer.nodesEjected.length)
         gameServer.removeNode(gameServer.nodesEjected[0]);
 
     while(gameServer.nodesVirus.length)
         gameServer.removeNode(gameServer.nodesVirus[0]);
 
+    // ORIGINALLY TAKEN FROM gameServer.spawnCells()
+    // spawn food at random size
+    var spawnCount = gameServer.config.foodMinAmount - gameServer.nodesFood.length;
+    for (var i = 0; i < spawnCount; i++) {
+        var cell = new Entity.Food(gameServer, null, gameServer.randomPos(), gameServer.config.foodMinSize);
+        if (gameServer.config.foodMassGrow) {
+            var maxGrow = gameServer.config.foodMaxSize - cell._size;
+            cell.setSize(cell._size += maxGrow * Math.random());
+        }
+        cell.setColor(gameServer.getRandomColor());
+        gameServer.addNode(cell);
+    }
+
+
+    var i = 0;
+    var j = 0;
+    while (gameServer.nodesVirus.length < gameServer.config.virusMinAmount) {
+        var pos = new Vec2(
+                    gameServer.border.minx + i,
+                    gameServer.border.miny + j
+            );
+        var virus = new Entity.Virus(gameServer, null, pos, gameServer.config.virusMinSize);
+            gameServer.addNode(virus);
+        
+        if(i <= gameServer.border.width) {
+            i += gameServer.border.width / 10;
+        } else if(j <= gameServer.border.height) {
+            j += gameServer.border.height / 10;
+            i = 0;
+        }
+
+    }
+
 };
 
-Duell.prototype.oneSecondEvents = function(gameServer) {
+Duel.prototype.oneSecondEvents = function(gameServer) {
 
     if (this.counter > 0) {
         this.counter--;
@@ -129,9 +164,9 @@ Duell.prototype.oneSecondEvents = function(gameServer) {
 
 };
 
-Duell.prototype.balanceBots = function(gameServer) {
+Duel.prototype.balanceBots = function(gameServer) {
 
-    if(gameServer.disableSpawn)
+    if(gameServer.disableSpawn || gameServer.config.serverBots === 0)
         return;
 
     this.connectedPlayers = 0;
@@ -167,7 +202,7 @@ Duell.prototype.balanceBots = function(gameServer) {
 
 // Override
 
-Duell.prototype.onPlayerSpawn = function(gameServer, player) {
+Duel.prototype.onPlayerSpawn = function(gameServer, player) {
 
     if(gameServer.disableSpawn) {
 
@@ -204,19 +239,13 @@ Duell.prototype.onPlayerSpawn = function(gameServer, player) {
             this.connectedPlayers++;
 
 
-    if(this.connectedPlayers > 1) {
-        // @2. Waiting for second player to trigger actual game start
+    if(this.connectedPlayers > 1) // Waiting for second player to trigger actual game start
         this.startGame(gameServer);
 
-    } else {
-        // @1. 1st player (re)join server, (re)setup the arena
-        this.setupArena(gameServer);
-
-    }
 
 };
 
-Duell.prototype.updateLB = function(gameServer, lb) {
+Duel.prototype.updateLB = function(gameServer, lb) {
 
     gameServer.leaderboardType = this.packetLB;
 
@@ -287,7 +316,7 @@ Duell.prototype.updateLB = function(gameServer, lb) {
 
 };
 
-Duell.prototype.onTick = function(gameServer) {
+Duel.prototype.onTick = function(gameServer) {
 
     if(this.triggerOneSecond)
         if(this.tickOneSecond >= this.oneSecondInterval) {

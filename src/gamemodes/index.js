@@ -4,7 +4,7 @@ module.exports = {
     Teams: require('./Teams'),
     Experimental: require('./Experimental'),
     Rainbow: require('./Rainbow'),
-    Duell: require('./Duell'),
+    Duel: require('./Duel'),
     Hunger: require('./Hunger')
 };
 
@@ -20,8 +20,8 @@ var get = function (id) {
         case 3: // Rainbow
             mode = new module.exports.Rainbow();
             break;
-        case 4: // Duell
-            mode = new module.exports.Duell();
+        case 4: // Duel
+            mode = new module.exports.Duel();
             break;
         case 5: // Hunger Games
             mode = new module.exports.Hunger();

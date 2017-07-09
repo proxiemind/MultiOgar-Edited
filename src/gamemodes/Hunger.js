@@ -1,11 +1,11 @@
-var Duell = require('./Duell');
+var Duel = require('./Duel');
 var Vec2 = require('../modules/Vec2');
 var Entity = require('../entity');
 
 
 function Hunger() {
 
-    Duell.apply(this, Array.prototype.slice.call(arguments));
+    Duel.apply(this, Array.prototype.slice.call(arguments));
 
     this.ID = 5;
     this.name = "Hunger Games";
@@ -24,7 +24,7 @@ function Hunger() {
 
 
 module.exports = Hunger;
-Hunger.prototype = new Duell();
+Hunger.prototype = new Duel();
 
 
 // Gamemode Specific Functions
