@@ -1,7 +1,5 @@
 var Mode = require('./Mode');
-var Vec2 = require('../modules/Vec2');
 var Entity = require('../entity');
-var Logger = require('../modules/Logger');
 
 
 function Duel() {
@@ -114,24 +112,9 @@ Duel.prototype.setupArena = function(gameServer) {
         gameServer.addNode(cell);
     }
 
-
-    var i = 0;
-    var j = 0;
     while (gameServer.nodesVirus.length < gameServer.config.virusMinAmount) {
-        var pos = new Vec2(
-                    gameServer.border.minx + i,
-                    gameServer.border.miny + j
-            );
-        var virus = new Entity.Virus(gameServer, null, pos, gameServer.config.virusMinSize);
-            gameServer.addNode(virus);
-        
-        if(i <= gameServer.border.width) {
-            i += gameServer.border.width / 10;
-        } else if(j <= gameServer.border.height) {
-            j += gameServer.border.height / 10;
-            i = 0;
-        }
-
+        var virus = new Entity.Virus(gameServer, null, gameServer.randomPos(), gameServer.config.virusMinSize);
+        gameServer.addNode(virus);
     }
 
 };
@@ -254,8 +237,12 @@ Duel.prototype.updateLB = function(gameServer, lb) {
     this.balanceBots(gameServer);
 
     if(players < 2) {
+        this.connectedPlayers = 0;
+        for(var i = 0; i < gameServer.clients.length; i++)
+            if(gameServer.clients[i].playerTracker.cells.length)
+                this.connectedPlayers++;
         lb[0] = 'Awaiting Players:';
-        lb[1] = players + '/' + gameServer.config.serverMaxConnections;
+        lb[1] = this.connectedPlayers + '/' + gameServer.config.serverMaxConnections;
         return;
     }
 
