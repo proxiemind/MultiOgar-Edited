@@ -55,6 +55,12 @@ BotLoader.prototype.addMinion = function(owner, name) {
     s.playerTracker = new MinionPlayer(this.gameServer, s, owner);
     s.packetHandler = new PacketHandler(this.gameServer, s);
     s.playerTracker.owner = owner;
+
+    // Spawn minions at special size
+    var size = this.gameServer.config.minionStartSize;
+    if (this.gameServer.config.minionMaxStartSize > size)
+        size = Math.random() * (this.gameServer.config.minionMaxStartSize - size) + size;
+    s.playerTracker.spawnmass = size;
     
     // Add to client list
     this.gameServer.clients.push(s);

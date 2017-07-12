@@ -5,7 +5,7 @@ function Virus() {
     this.cellType = 2;
     this.isSpiked = true;
     this.isMotherCell = false; // Not to confuse bots
-    this.setColor({ r: 0x33, g: 0xff, b: 0x33 });
+    this.color = { r: 0x33, g: 0xff, b: 0x33 };
 }
 
 module.exports = Virus;
@@ -21,7 +21,7 @@ Virus.prototype.canEat = function (cell) {
 
 Virus.prototype.onEat = function (prey) {
     // Called to eat prey cell
-    this.setSize(Math.sqrt(this._sizeSquared + prey._sizeSquared));
+    this.setSize(Math.sqrt(this.radius + prey.radius));
     
     if (this._size >= this.gameServer.config.virusMaxSize) {
         this.setSize(this.gameServer.config.virusMinSize); // Reset mass
@@ -31,10 +31,10 @@ Virus.prototype.onEat = function (prey) {
 
 Virus.prototype.onEaten = function (c) {
     if (!c.owner) return; // Only players can explode
-    var minSize = this.gameServer.config.playerMinSize,                         // maximum size of small splits
+    var minSize = this.gameServer.config.playerMinSize - 2.6227766017,          // maximum size of small splits
     cellsLeft = this.gameServer.config.playerMaxCells - c.owner.cells.length,   // how many cells can split
     threshold = c._mass - cellsLeft * minSize;                                  // size check for exploding cells
-
+    c.div = 20;
     // Diverse explosion(s)
     var big = []; // amount of big splits
     if (cellsLeft <= 0) return; // cannot split
@@ -45,7 +45,7 @@ Virus.prototype.onEaten = function (c) {
     // Monotone explosion(s)
     else if (c._size > 216) {
         // virus explosion multipliers
-        var exp = Math.random() * (5 - 3.33) + 3.33;
+        var exp = Math.random() * (4.5 - 3.33) + 3.33;
         while (threshold / exp > 24) {
             threshold /= exp;
             exp = 2;

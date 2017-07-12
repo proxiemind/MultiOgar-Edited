@@ -14,7 +14,7 @@ FFA.prototype = new Mode();
 // Gamemode Specific Functions
 
 FFA.prototype.onPlayerSpawn = function(gameServer, player) {
-    player.setColor(gameServer.getRandomColor());
+    player.color = gameServer.getRandomColor();
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());
 };

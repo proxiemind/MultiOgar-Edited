@@ -27,7 +27,7 @@ function Duel() {
     
     // Config
     this.oneSecondInterval = 25;        // GameServer.js@timerLoop:~534 | ~25 is a factor of one second within this implementation
-    this.matchLength = 10;              // Minutes
+    this.matchLength = 15;              // Minutes
     this.joinInterval = 5;              // Seconds
     this.restartInterval = 7;           // Seconds
 }
@@ -108,7 +108,7 @@ Duel.prototype.setupArena = function(gameServer) {
             var maxGrow = gameServer.config.foodMaxSize - cell._size;
             cell.setSize(cell._size += maxGrow * Math.random());
         }
-        cell.setColor(gameServer.getRandomColor());
+        cell.color = gameServer.getRandomColor();
         gameServer.addNode(cell);
     }
 
@@ -210,7 +210,7 @@ Duel.prototype.onPlayerSpawn = function(gameServer, player) {
     }
 
 
-    player.setColor(gameServer.getRandomColor());
+    player.color = gameServer.getRandomColor();
     player.frozen = true;
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());

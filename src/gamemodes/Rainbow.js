@@ -1,4 +1,4 @@
-﻿var FFA = require('./FFA'); // Base gamemode
+var FFA = require('./FFA'); // Base gamemode
 var Food = require('../entity/Food');
 
 function Rainbow() {
@@ -145,7 +145,7 @@ Rainbow.prototype.changeColor = function (node) {
     if (node.rainbow >= this.colorsLength) {
         node.rainbow = 0;
     }
-    node.setColor(this.colors[node.rainbow]);
+    node.color = this.colors[node.rainbow];
     node.rainbow += this.speed;
 };
 

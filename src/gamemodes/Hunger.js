@@ -82,7 +82,7 @@ Hunger.prototype.onPlayerSpawn = function(gameServer, player) {
     }
 
 
-    player.setColor(gameServer.getRandomColor());
+    player.color = gameServer.getRandomColor();
     player.frozen = true;
     // Spawn player
     var spawnPlace = this.connectedPlayers >= 12 ? 0 : this.connectedPlayers;

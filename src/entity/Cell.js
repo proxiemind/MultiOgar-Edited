@@ -5,8 +5,7 @@ function Cell(gameServer, owner, position, size) {
     this.owner = owner;     // playerTracker that owns this cell
     
     this.color = { r: 0, g: 0, b: 0 };
-    this.position;
-    this._sizeSquared = 0;
+    this.radius = 0;
     this._size = 0;
     this._mass = 0;
     this.cellType = -1;     // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
@@ -29,16 +28,10 @@ module.exports = Cell;
 
 // Fields not defined by the constructor are considered private and need a getter/setter to access from a different class
 
-Cell.prototype.setColor = function (color) {
-    this.color.r = color.r;
-    this.color.g = color.g;
-    this.color.b = color.b;
-};
-
 Cell.prototype.setSize = function (size) {
     this._size = size;
-    this._sizeSquared = size * size;
-    this._mass = this._sizeSquared / 100;
+    this.radius = size * size;
+    this._mass = this.radius / 100;
 };
 
 // by default cell cannot eat anyone
@@ -55,9 +48,9 @@ Cell.prototype.getAge = function () {
 Cell.prototype.onEat = function (prey) {
     if (!this.gameServer.config.playerBotGrow) {
         if (this._size >= 250 && prey._size <= 41 && prey.cellType == 0)
-            prey._sizeSquared = 0; // Can't grow from players under 17 mass
+            prey.radius = 0; // Can't grow from players under 17 mass
     }
-    this.setSize(Math.sqrt(this._sizeSquared + prey._sizeSquared));
+    this.setSize(Math.sqrt(this.radius + prey.radius));
 };
 
 Cell.prototype.setBoost = function (distance, angle) {

@@ -1,4 +1,5 @@
 var Cell = require('./Cell');
+var Packet = require('../packet');
 
 function PlayerCell() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
@@ -23,6 +24,9 @@ PlayerCell.prototype.getSpeed = function (dist) {
 
 PlayerCell.prototype.onAdd = function (gameServer) {
     // Add to player nodes list
+    this.color = this.owner.color;
+    this.owner.cells.push(this);
+    this.owner.socket.packetHandler.sendPacket(new Packet.AddNode(this.owner, this));
     this.gameServer.nodesPlayer.unshift(this);
 };
 

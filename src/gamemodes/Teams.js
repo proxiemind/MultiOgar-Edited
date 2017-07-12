@@ -1,4 +1,4 @@
-﻿var Mode = require('./Mode');
+var Mode = require('./Mode');
 
 function Teams() {
     Mode.apply(this, Array.prototype.slice.call(arguments));
@@ -51,7 +51,7 @@ Teams.prototype.getTeamColor = function (team) {
 
 Teams.prototype.onPlayerSpawn = function (gameServer, player) {
     // Random color based on team
-    player.setColor(this.getTeamColor(player.team));
+    player.color = this.getTeamColor(player.team);
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());
 };
@@ -66,10 +66,10 @@ Teams.prototype.onServerInit = function (gameServer) {
     for (var i = 0; i < gameServer.clients.length; i++) {
         var client = gameServer.clients[i].playerTracker;
         this.onPlayerInit(client);
-        client.setColor(this.getTeamColor(client.team));
+        client.color = this.getTeamColor(client.team);
         for (var j = 0; j < client.cells.length; j++) {
             var cell = client.cells[j];
-            cell.setColor(client.color);
+            cell.color = client.color;
             this.nodes[client.team].push(cell);
         }
     }

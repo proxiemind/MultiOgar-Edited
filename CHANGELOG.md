@@ -1,4 +1,26 @@
 # Changelog
+#### 1.6.1:
+* Cleaned a bit of CommandList, thanks to @AlexHGaming;
+* Added botnames and removed unrealistic ones, thanks to @AlexHGaming;
+* Fixed reload command;
+* Added an issue template with rules, thanks to @proxiemind;
+* Beautify leaderboard code and fixed board command, thanks to @Agarian;
+* Added support for protocol 13, thanks to @Tyler3D;
+* Added ability to separate chat for teams, thanks to @F0RIS;
+* Fix minions not always collecting pellets in pellet mode;
+* Added average score section to status command;
+* Fixed some bugs regarding physics and collision;
+* Fixed cells switching order on doublesplit, thanks to @Luka967;
+* Added reading arguments on startup, thanks to @F0RIS
+* Fixed skins on Cigar client, thanks to @Tyler3D;
+* Improved console UI, thanks to @FantasyIsBae and @Tyler3D;
+* Tweaked the readme, thanks to @FantasyIsBae and @MastaCoder;
+* Fixed mothercell spawning issue;
+* Edited the Wiki, thanks to @AlexHGaming, @Steve7914, @Tyler3D, @ItzLevvie, and @MastaCoder;
+* Created the MultiOgar-Edited Wiki, thanks to @AlexHGaming;
+* Match randomskins.txt to Agar.io's skins, thanks to @ItzLevvie;	
+
+-------------
 #### 1.6.0:
 * Refactored collision and move engine;
 * Formatted & simplified some code;

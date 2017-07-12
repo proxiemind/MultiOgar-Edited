@@ -72,7 +72,7 @@ UpdateLeaderboard.prototype.buildFfa6 = function() {
     writeCount(writer, 0x31, this.leaderboardCount);
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
-        if (item == null) return null; // bad leaderboardm just don't send it
+        if (item == null) return null; // bad leaderboard just don't send it
         var name = item._nameUtf8;
         var id = item == this.playerTracker ? 1 : 0;
         writer.writeUInt32(id >>> 0); // isMe flag
@@ -89,7 +89,7 @@ UpdateLeaderboard.prototype.buildFfa11 = function() {
     writeCount(writer, 0x31, this.leaderboardCount);
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
-        if (item == null) return null; // bad leaderboardm just don't send it
+        if (item == null) return null; // bad leaderboard just don't send it
         var name = item._nameUtf8;
         if (name) writer.writeBytes(name);
         else writer.writeUInt8(0);
@@ -102,7 +102,7 @@ UpdateLeaderboard.prototype.buildFfa13 = function() {
     writer.writeUInt8(0x33); // Packet ID
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
-        if (item == null) return null; // bad leaderboardm just don't send it
+        if (item == null) return null; // bad leaderboard just don't send it
         if (item === this.playerTracker) {
             writer.writeUInt8(0x09);
             writer.writeUInt16(1);
@@ -134,7 +134,7 @@ UpdateLeaderboard.prototype.buildParty = function() {
     writer.writeUInt16(protocol13s); // How many friends are in-game
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
-        if (item == null) return null; // bad leaderboardm just don't send it
+        if (item == null) return null; // bad leaderboard just don't send it
         if (item === this.playerTracker) {
             writer.writeUInt8(0x09);
             writer.writeUInt16(1);

@@ -33,24 +33,24 @@ Commands.list = {
                     "│ playerlist                   │ Get list of players, bots, ID's, etc      │\n"+
                     "│ minion [PlayerID] [#] [name] │ Adds suicide minions to the server        │\n"+
                     "│ addbot [number]              │ Adds bots to the server                   │\n"+
-                    "│ kickbot [number]             │ Kick a number of bots                     │\n"+
+                    "│ kickbot [number]             │ Kick a number of bots - No value= all gone│\n"+
                     "│ kick [PlayerID]              │ Kick player or bot by client ID           │\n"+
                     "│ kickall                      │ Kick all players and bots                 │\n"+
-                    "│ kill [PlayerID]              │ Kill cell(s) by client ID                 │\n"+
-                    "│ killall                      │ Kill everyone                             │\n"+
+                    "│ kill [PlayerID]              │ Kill the player by client ID              │\n"+
+                    "│ killall                      │ Kills everyone                            │\n"+
                     "│                                                                          │\n"+
                     "│                          ----Player Commands----                         │\n"+
                     "│                                                                          │\n"+
                     "│ spawn [entity] [pos] [mass]  │ Spawns an entity                          │\n"+
                     "│ mass [PlayerID] [mass]       │ Set cell(s) mass by client ID             │\n"+
                     "│ merge [PlayerID]             │ Merge all client's cells                  │\n"+
-                    "│ spawnmass [PlayerID] [mass]  │ Sets a players spawn mass                 │\n"+
+                    "│ spawnmass [PlayerID] [mass]  │ Sets a player's spawn mass                │\n"+
                     "│ freeze [PlayerID]            │ Freezes a player                          │\n"+
-                    "│ speed [PlayerID]             │ Sets a players base speed                 │\n"+
+                    "│ speed [PlayerID]             │ Sets a player's base speed                │\n"+
                     "│ color [PlayerID] [R] [G] [B] │ Set cell(s) color by client ID            │\n"+
                     "│ name [PlayerID] [name]       │ Change cell(s) name by client ID          │\n"+
                     "│ skin [PlayerID] [string]     │ Change cell(s) skin by client ID          │\n"+
-                    "│ rec [PlayerID]               │ Gives a player instant-recombine          │\n"+
+                    "│ rec [PlayerID]               │ Gives a player instant-recombine + more   │\n"+
                     "│ split [PlayerID] [Amount]    │ Forces a player to split                  │\n"+
                     "│ tp [X] [Y]                   │ Teleports player(s) to XY coordinates     │\n"+
                     "│ replace [PlayerID] [entity]  │ Replaces a player with an entity          │\n"+
@@ -62,21 +62,21 @@ Commands.list = {
                     "│ pause                        │ Pause game, freeze all nodes              │\n"+
                     "│ board [string] [string] ...  │ Set scoreboard text                       │\n"+
                     "│ change [setting] [value]     │ Change specified settings                 │\n"+
-                    "│ reload                       │ Reload config file and banlist            │\n"+
+                    "│ reload                       │ Reload config, banlist, and role files    │\n"+
                     "│ ban [PlayerID │ IP]          │ Bans a player(s) IP                       │\n"+
                     "│ unban [IP]                   │ Unbans an IP                              │\n"+
                     "│ banlist                      │ Get list of banned IPs.                   │\n"+
-                    "│ mute [PlayerID]              │ Mute player from chat                     │\n"+
-                    "│ unmute [PlayerID]            │ Unmute player from chat                   │\n"+
+                    "│ mute [PlayerID]              │ Mute player from chat by client ID        │\n"+
+                    "│ unmute [PlayerID]            │ Unmute player from chat by client ID      │\n"+
                     "│ lms                          │ Starts/ends last man standing             │\n"+
                     "│                                                                          │\n"+
                     "│                          ----Miscellaneous----                           │\n"+
                     "│                                                                          │\n"+
                     "│ clear                        │ Clear console output                      │\n"+
-                    "│ reset                        │ Removes all nodes                         │\n"+
+                    "│ reset                        │ Removes all nodes and reimplement them    │\n"+
                     "│ status                       │ Get server status                         │\n"+
                     "│ debug                        │ Get/check node lengths                    │\n"+
-                    "│ exit                         │ Stop the server                           │\n"+
+                    "│ exit                         │ Stops the server                          │\n"+
                     "│ calc                         │ Get size/mass from a specified value      │\n"+
                     "│                                                                          │\n"+
                     "├──────────────────────────────────────────────────────────────────────────┤\n"+
@@ -87,7 +87,7 @@ Commands.list = {
        Logger.print("                       ┌────────────────────────────┐                       \n"+
                     "                       │ LIST OF COMMAND SHORTCUTS  │                       \n"+
                     "┌──────────────────────┴──────┬─────────────────────┴──────────────────────┐\n"+
-                    "│ st                          │ Alias for status                           │\n"+
+                    "│ st                          │ Alias for status of server                 │\n"+
                     "│ pl                          │ Alias for playerlist                       │\n"+
                     "│ m                           │ Alias for mass                             │\n"+
                     "│ sm                          │ Alias for spawnmass                        │\n"+
@@ -124,7 +124,7 @@ Commands.list = {
     },
     reset: function(gameServer, split) {
         Logger.warn("Removed " + gameServer.nodes.length + " nodes");
-        // Remove all nodes in the entire universe
+        // Remove all nodes in the entire server
         while (gameServer.nodes.length)
             gameServer.removeNode(gameServer.nodes[0]);
         while (gameServer.nodesEjected.length)
@@ -345,9 +345,9 @@ Commands.list = {
             if (gameServer.clients[i].playerTracker.pID == id) {
                 var client = gameServer.clients[i].playerTracker;
                 if (!client.cells.length) return Logger.warn("That player is either dead or not playing!");
-                client.setColor(color); // Set color
+                client.color = color; // Set color
                 for (var j in client.cells) {
-                    client.cells[j].setColor(color);
+                    client.cells[j].color = color;
                 }
                 break;
             }
@@ -442,7 +442,7 @@ Commands.list = {
             // remove player cells
             Commands.list.killall(gameServer, split);
             // disconnect
-            socket.close(1000, "Kicked from server");
+            socket.close(1000, "Kicked from server.");
             var name = getName(socket.playerTracker._name);
             Logger.print("Kicked \"" + name + "\"");
             gameServer.sendChatMessage(null, null, "Kicked \"" + name + "\""); // notify to don't confuse with server bug
@@ -685,7 +685,7 @@ Commands.list = {
             return;
         }
         if (player.cells.length) {
-            Logger.warn("Player is alive, skin will not be applied to existing cells");
+            Logger.warn("Player is alive, skin will not be applied to existing cells!");
         }
         Logger.print("Player \"" + getName(player._name) + "\"'s skin is changed to " + skin);
         player.setSkin(skin);
@@ -794,9 +794,8 @@ Commands.list = {
         if (client == null) return void Logger.warn("That player ID is non-existant!");
     },
     reload: function(gameServer, split) {
-        gameServer.loadConfig();
-        gameServer.loadIpBanList();
-        Logger.print("Reloaded the config file succesully");
+        gameServer.loadFiles();
+        Logger.print("Reloaded files successfully");
     },
     status: function(gameServer, split) {
         var ini = require('./ini.js');
@@ -819,7 +818,7 @@ Commands.list = {
         Logger.print("Connected players: " + gameServer.clients.length + "/" + gameServer.config.serverMaxConnections);
         Logger.print("Players: " + humans + " - Bots: " + bots);
         Logger.print("Average score: " + (scores.reduce((x, y) => x + y) / scores.length).toFixed(2));
-        Logger.print("Server has been running for " + Math.floor(process.uptime() / 60) + " minutes");
+        Logger.print("Server has been running for a total of" + Math.floor(process.uptime() / 60) + " minutes");
         Logger.print("Current memory usage: " + Math.round(process.memoryUsage().heapUsed / 1048576 * 10) / 10 + "/" + Math.round(process.memoryUsage().heapTotal / 1048576 * 10) / 10 + " mb");
         Logger.print("Current game mode: " + gameServer.gameMode.name);
         Logger.print("Current update time: " + gameServer.updateTimeAvg.toFixed(3) + " [ms]  (" + ini.getLagMessage(gameServer.updateTimeAvg) + ")");
@@ -896,7 +895,7 @@ Commands.list = {
             Logger.print("Spawned 1 virus at (" + pos.x + " , " + pos.y + ")");
         } else if (ent == "food") {
             var food = new Entity.Food(gameServer, null, pos, size);
-            food.setColor(gameServer.getRandomColor());
+            food.color = gameServer.getRandomColor();
             gameServer.addNode(food);
             Logger.print("Spawned 1 food cell at (" + pos.x + " , " + pos.y + ")");
         } else if (ent == "mothercell") {
@@ -929,7 +928,7 @@ Commands.list = {
                         gameServer.addNode(virus);
                     } else if (ent == "food") {
                         var food = new Entity.Food(gameServer, null, cell.position, cell._size);
-                        food.setColor(gameServer.getRandomColor());
+                        food.color = gameServer.getRandomColor();
                         gameServer.addNode(food);
                     } else if (ent == "mothercell") {
                         var mother = new Entity.MotherCell(gameServer, null, cell.position, cell._size);
@@ -979,7 +978,7 @@ Commands.list = {
                         // remove mass from parent cell
                         var angle = 6.28 * Math.random();
                         var loss = gameServer.config.ejectSizeLoss;
-                        var size = cell._sizeSquared - loss * loss;
+                        var size = cell.radius - loss * loss;
                         cell.setSize(Math.sqrt(size));
                         // explode the cell
                         var pos = {
@@ -987,7 +986,7 @@ Commands.list = {
                             y: cell.position.y + angle
                         };
                         var ejected = new Entity.EjectedMass(gameServer, null, pos, gameServer.config.ejectSize);
-                        ejected.setColor(cell.color);
+                        ejected.color = cell.color;
                         ejected.setBoost(gameServer.config.ejectVelocity * Math.random(), angle);
                         gameServer.addNode(ejected);
                     }

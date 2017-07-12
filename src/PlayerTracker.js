@@ -120,12 +120,6 @@ PlayerTracker.prototype.setSkin = function(skin) {
     this._skinUtf8protocol11 = writer1.toBuffer();
 };
 
-PlayerTracker.prototype.setColor = function(color) {
-    this.color.r = color.r;
-    this.color.g = color.g;
-    this.color.b = color.b;
-};
-
 PlayerTracker.prototype.getScale = function() {
     this._score = 0; // reset to not cause bugs with leaderboard
     var scale = 0; // reset to not cause bugs with viewbox
@@ -227,10 +221,8 @@ PlayerTracker.prototype.updateTick = function() {
     this.viewNodes = [];
     var self = this;
     this.gameServer.quadTree.find(this.viewBox, function(check) {
-        if (check.owner != self)
-            self.viewNodes.push(check);
+        self.viewNodes.push(check);
     });
-    this.viewNodes = this.viewNodes.concat(this.cells);
     this.viewNodes.sort(function(a, b) { return a.nodeId - b.nodeId; });
 };
 
@@ -283,11 +275,13 @@ PlayerTracker.prototype.sendUpdate = function() {
         var node = this.viewNodes[newIndex];
         if (node.isRemoved) continue;
         // only send update for moving or player nodes
-        if (node.isMoving || node.cellType == 0)
+        if (node.isMoving || node.cellType == 0 || node.cellType == 2)
             updNodes.push(node);
-        addNodes.push(node);
         newIndex++;
         oldIndex++;
+    }
+    for (; newIndex < this.viewNodes.length; newIndex++) {
+        addNodes.push(this.viewNodes[newIndex]);
     }
     for (; oldIndex < this.clientNodes.length; oldIndex++) {
         var node = this.clientNodes[oldIndex];

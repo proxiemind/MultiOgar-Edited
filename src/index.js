@@ -8,6 +8,7 @@ var figlet = require('figlet');
 var showConsole = true;
 
 // Start msg
+setLoggerColorscheme();
 Logger.start();
 
 process.on('exit', function (code) {
@@ -36,6 +37,7 @@ process.argv.forEach(function (item) {
             console.log("    -m, --gamemode         Set game mode (id)");
             console.log("    -c, --connections      Set max connections limit");
             console.log("    -t, --tracker          Set serverTracker");
+            console.log("    -l, --light-background Set a light-background colorscheme for logger")
             console.log("    --noconsole            Disables the console");
             console.log("    --help                 Help menu");
             console.log("");
@@ -68,12 +70,24 @@ process.argv.forEach(function (item) {
         case "--tracker":
             setParam("serverTracker", parseInt(getValue(item)));
             break;
+
+        case "-l":
+        case "--light-background":
+            //Has already been processed before logger initialisation
+            break;
         
         case "--noconsole":
             showConsole = false;
             break;
     }
 });
+
+function setLoggerColorscheme(){
+    if (process.argv.indexOf("-l") != -1
+        || process.argv.indexOf("--light-background") != -1) {
+        Logger.setLightBackgroundColorscheme();
+    }
+}
 
 function getValue(param){
     var ind = process.argv.indexOf(param);
