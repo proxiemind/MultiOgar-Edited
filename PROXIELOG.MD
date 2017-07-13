@@ -1,3 +1,12 @@
+13.07.2017
+
+GENERAL:
+- Upgraded to the latest MO-E 1.6.1
+- New auto-update script that will handle auto-deployments, when rooms are free from players (not available under repo)
+- Introducing NA SERVERS!
+
+-------------
+
 11.07.2017
 
 GENERAL:
