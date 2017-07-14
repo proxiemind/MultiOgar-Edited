@@ -78,14 +78,17 @@ function print(message) {
 };
 
 function write(message) {
+    writeCon(colorscheme.info, LogLevelEnum.NONE, message);
     writeLog(LogLevelEnum.NONE, message);
 };
 
 function writeDebug(message) {
+    writeCon(colorscheme.info, LogLevelEnum.NONE, message);
     writeLog(LogLevelEnum.DEBUG, message);
 };
 
 function writeError(message) {
+    writeCon(colorscheme.info, LogLevelEnum.NONE, message);
     writeLog(LogLevelEnum.ERROR, message);
 };
 
