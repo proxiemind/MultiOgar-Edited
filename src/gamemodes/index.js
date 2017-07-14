@@ -5,7 +5,8 @@ module.exports = {
     Experimental: require('./Experimental'),
     Rainbow: require('./Rainbow'),
     Duel: require('./Duel'),
-    Hunger: require('./Hunger')
+    Hunger: require('./Hunger'),
+    LMS: require('./LMS')
 };
 
 var get = function (id) {
@@ -25,6 +26,9 @@ var get = function (id) {
             break;
         case 5: // Hunger Games
             mode = new module.exports.Hunger();
+            break;
+        case 6: // LMS
+            mode = new module.exports.LMS();
             break;
         default: // FFA is default
             mode = new module.exports.FFA();
