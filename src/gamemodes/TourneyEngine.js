@@ -167,24 +167,23 @@ TourneyEngine.prototype.onPlayerDC = function(gameServer) {
 TourneyEngine.prototype.onCellRemove = function(cell) {
 
     var owner = cell.owner;
-    if(owner.cells.length <= 0) {
+    if(owner.cells.length > 0)
+        return;
 
-        // RIP Player
-        var index = this.alivePlayers.indexOf(owner);
-        if(index !== -1)
-            this.alivePlayers.splice(index, 1);
+    // RIP Player
+    var index = this.alivePlayers.indexOf(owner);
+    if(index !== -1)
+        this.alivePlayers.splice(index, 1);
 
-        // Bot - kick them, it creates damn performance drops - need to check it later why
-        if(owner.hasOwnProperty('splitCooldown')) {
-            owner.isRemoved = true;
-            owner.isCloseRequested = true;
-        }
+    // Bot - kick them, it creates damn performance drops - need to check it later why
+    if(owner.hasOwnProperty('splitCooldown')) {
+        owner.isRemoved = true;
+        owner.isCloseRequested = true;
+    }
 
-        // Monitor Alive Players & end game if conditions apply
-        if(this.alivePlayers.length <= 1) {
-            this.endGame();
-        }
-
+    // Monitor Alive Players & end game if conditions apply
+    if(this.alivePlayers.length <= 1 && this.stage == 2) {
+        this.endGame();
     }
 
 };
