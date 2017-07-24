@@ -37,4 +37,7 @@ PlayerCell.prototype.onRemove = function (gameServer) {
 
     index = this.gameServer.nodesPlayer.indexOf(this);
     if (index != -1) this.gameServer.nodesPlayer.splice(index, 1);
+
+    // Gamemode actions
+    gameServer.gameMode.onCellRemove(this);
 };

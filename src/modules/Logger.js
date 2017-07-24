@@ -130,15 +130,18 @@ function writeCon(color, level, message) {
     message = util.format(message);
     var prefix = "";
     if (level == LogLevelEnum.DEBUG)
-        prefix = "| [DEBUG] ";
+        prefix = "| [DEBUG]";
     else if (level == LogLevelEnum.INFO)
-        prefix = "| [INFO] ";
+        prefix = "| [INFO ]";
     else if (level == LogLevelEnum.WARN)
-        prefix = "| [WARN] ";
+        prefix = "| [WARN ]";
     else if (level == LogLevelEnum.ERROR)
-        prefix = "| [ERROR] ";
+        prefix = "| [ERROR]";
     else if (level == LogLevelEnum.FATAL)
-        prefix = "| [FATAL] ";
+        prefix = "| [FATAL]";
+    else if (level == LogLevelEnum.NONE)
+        prefix = "| [NONE ]";
+    prefix += "[" + getTimeString() + "] ";
     process.stdout.write(color + prefix + message + "\u001B[0m" + EOL);
 };
 

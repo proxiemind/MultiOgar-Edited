@@ -3,7 +3,7 @@ module.exports = {
     FFA: require('./FFA'),
     Teams: require('./Teams'),
     Experimental: require('./Experimental'),
-    Rainbow: require('./Rainbow'),
+    TourneyEngine: require('./TourneyEngine'),
     Duel: require('./Duel'),
     Hunger: require('./Hunger'),
     LMS: require('./LMS')
@@ -18,8 +18,8 @@ var get = function (id) {
         case 2: // Experimental
             mode = new module.exports.Experimental();
             break;
-        case 3: // Rainbow
-            mode = new module.exports.Rainbow();
+        case 3: // TourneyEngine
+            mode = new module.exports.TourneyEngine();
             break;
         case 4: // Duel
             mode = new module.exports.Duel();

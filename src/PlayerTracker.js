@@ -68,7 +68,7 @@ function PlayerTracker(gameServer, socket) {
         // Player id
         this.pID = gameServer.lastPlayerId++ >> 0;
         // Gamemode function
-        gameServer.gameMode.onPlayerInit(this);
+        gameServer.gameMode.onPlayerInit(gameServer, this);
         // Only scramble if enabled in config
         this.scramble();
     }

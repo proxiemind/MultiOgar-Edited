@@ -1,22 +1,21 @@
-var Duel = require('./Duel');
-var Entity = require('../entity');
+var TourneyEngine = require('./TourneyEngine');
 
 
 function LMS() {
 
-    Duel.apply(this, Array.prototype.slice.call(arguments));
+    TourneyEngine.apply(this, Array.prototype.slice.call(arguments));
 
     this.ID = 6;
     this.name = "LMS";
-    this.specByLeaderboard = false;
-    this.packetLB = 48;
+    // this.specByLeaderboard = false;
+    // this.packetLB = 48;
 
     // Config
-    this.matchLength = 60;              // Minutes
+    this.matchLength = 60 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 20;             // Seconds
     this.restartInterval = 10;           // Seconds
 }
 
 
 module.exports = LMS;
-LMS.prototype = new Duel();
+LMS.prototype = new TourneyEngine();

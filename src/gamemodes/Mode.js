@@ -20,7 +20,7 @@ Mode.prototype.onTick = function (gameServer) {
     // Called on every game tick 
 };
 
-Mode.prototype.onPlayerInit = function (player) {
+Mode.prototype.onPlayerInit = function (gameServer, player) {
     // Called after a player object is constructed
 };
 
@@ -28,6 +28,10 @@ Mode.prototype.onPlayerSpawn = function (gameServer, player) {
     // Called when a player is spawned
     player.color = gameServer.getRandomColor(); // Random color
     gameServer.spawnPlayer(player, gameServer.randomPos());
+};
+
+Mode.prototype.onPlayerDC = function (gameServer) {
+    // Called when socket is closed or player is DCed
 };
 
 Mode.prototype.onCellAdd = function (cell) {

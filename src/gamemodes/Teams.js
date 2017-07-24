@@ -65,7 +65,7 @@ Teams.prototype.onServerInit = function (gameServer) {
     // migrate current players to team mode
     for (var i = 0; i < gameServer.clients.length; i++) {
         var client = gameServer.clients[i].playerTracker;
-        this.onPlayerInit(client);
+        this.onPlayerInit(gameServer, client);
         client.color = this.getTeamColor(client.team);
         for (var j = 0; j < client.cells.length; j++) {
             var cell = client.cells[j];
@@ -75,7 +75,7 @@ Teams.prototype.onServerInit = function (gameServer) {
     }
 };
 
-Teams.prototype.onPlayerInit = function (player) {
+Teams.prototype.onPlayerInit = function (gameServer, player) {
     // Get random team
     player.team = Math.floor(Math.random() * this.teamAmount);
 };
