@@ -167,7 +167,7 @@ TourneyEngine.prototype.onPlayerDC = function(gameServer) {
 TourneyEngine.prototype.onCellRemove = function(cell) {
 
     var owner = cell.owner;
-    if(owner.cells.length > 0)
+    if(owner.cells.length)
         return;
 
     // RIP Player
@@ -184,6 +184,9 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
     // Monitor Alive Players & end game if conditions apply
     if(this.alivePlayers.length <= 1 && this.stage == 2) {
         this.endGame();
+    } else if(this.alivePlayers.length <= 1 && this.stage < 2) {
+        this.timer = 0;
+        this.stage = 0;
     }
 
 };
