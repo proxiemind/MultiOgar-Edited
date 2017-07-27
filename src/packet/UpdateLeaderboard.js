@@ -12,14 +12,15 @@ UpdateLeaderboard.prototype.build = function(protocol) {
     switch (this.leaderboardType) {
         case 48:
             // UserText
-            return protocol < 13 ? this.buildUserText(protocol) : this.buildUserText13();
+            if      (protocol < 11) return this.buildUserText(protocol);
+            else if (protocol < 14) return this.buildUserText13();
+            else                    return this.buildUserText14();
         case 49:
             // FFA
-            if (protocol < 6) return this.buildFfa5();
+            if      (protocol < 6 ) return this.buildFfa5();
             else if (protocol < 11) return this.buildFfa6();
-            //else if (protocol == 11)
-            //return this.buildFfa11();
-            else return this.buildFfa13();
+            else if (protocol < 14) return this.buildFfa13();
+            else                    return this.buildFfa14();
         case 50:
             // Team
             return this.buildTeam();
@@ -43,6 +44,17 @@ UpdateLeaderboard.prototype.buildUserText = function(protocol) {
 UpdateLeaderboard.prototype.buildUserText13 = function () {
     var writer = new BinaryWriter();
     writer.writeUInt8(0x33);
+    for (var i = 0; i < this.leaderboard.length; i++) {
+        var item = this.leaderboard[i] || "";
+        writer.writeUInt8(0x02);
+        writer.writeStringZeroUtf8(item);
+    }
+    return writer.toBuffer();
+};
+// UserText protocol 14
+UpdateLeaderboard.prototype.buildUserText14 = function () {
+    var writer = new BinaryWriter();
+    writer.writeUInt8(0x35);
     for (var i = 0; i < this.leaderboard.length; i++) {
         var item = this.leaderboard[i] || "";
         writer.writeUInt8(0x02);
@@ -100,6 +112,31 @@ UpdateLeaderboard.prototype.buildFfa11 = function() {
 UpdateLeaderboard.prototype.buildFfa13 = function() {
     var writer = new BinaryWriter();
     writer.writeUInt8(0x33); // Packet ID
+    for (var i = 0; i < this.leaderboardCount; i++) {
+        var item = this.leaderboard[i];
+        if (item == null) return null; // bad leaderboard just don't send it
+        if (item === this.playerTracker) {
+            writer.writeUInt8(0x09);
+            writer.writeUInt16(1);
+        } else {
+            var name = item._name;
+            writer.writeUInt8(0x02);
+            if (name != null && name.length) writer.writeStringZeroUtf8(name);
+            else writer.writeUInt8(0);
+        }
+    }
+    var thing = this.leaderboard.indexOf(this.playerTracker) + 1;
+    var place = (thing <= 10) ? null : thing;
+    if (this.playerTracker.cells.length && place != null) {
+        writer.writeUInt8(0x09);
+        writer.writeUInt16(place);
+    }
+    return writer.toBuffer();
+};
+// FFA protocol 14
+UpdateLeaderboard.prototype.buildFfa14 = function() {
+    var writer = new BinaryWriter();
+    writer.writeUInt8(0x35); // Packet ID
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
         if (item == null) return null; // bad leaderboard just don't send it
