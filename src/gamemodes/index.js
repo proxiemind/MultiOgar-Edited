@@ -6,7 +6,8 @@ module.exports = {
     TourneyEngine: require('./TourneyEngine'),
     Duel: require('./Duel'),
     Hunger: require('./Hunger'),
-    LMS: require('./LMS')
+    LMS: require('./LMS'),
+    Rush: require('./Rush')
 };
 
 var get = function (id) {
@@ -29,6 +30,9 @@ var get = function (id) {
             break;
         case 6: // LMS
             mode = new module.exports.LMS();
+            break;
+        case 7: // Rush
+            mode = new module.exports.Rush();
             break;
         default: // FFA is default
             mode = new module.exports.FFA();
