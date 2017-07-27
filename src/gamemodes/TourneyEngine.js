@@ -20,7 +20,9 @@ function TourneyEngine() {
     // Local Config
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 5;              // Seconds
+    this.reJoinInterval = 0;            // Minutes (Remember to keep it under matchLength)
     this.restartInterval = 7;           // Seconds
+
 }
 
 
@@ -46,11 +48,17 @@ TourneyEngine.prototype.onStartGame = function(gameServer) {
 
     this.stage = 2;
     this.timer = this.matchLength;
-    gameServer.disableSpawn = true;
+    gameServer.disableSpawn = this.reJoinInterval ? false : true;
 
     for(var i = 0; i < this.alivePlayers.length; i++)
         this.alivePlayers[i].frozen = false;
 
+    if(this.reJoinInterval)
+        setTimeout(function(){
+                gameServer.disableSpawn = true;
+            },
+            this.reJoinInterval * 60000 // How many minutes server is still open. No sense to count it like timer or .onTick
+        );
 
 };
 
@@ -193,21 +201,18 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
 
 TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
 
-    if(gameServer.disableSpawn)
-            return;
+    if(gameServer.disableSpawn && !this.reJoinInterval)
+        return;
 
     player.color = gameServer.getRandomColor();
-    player.frozen = true;
+    player.frozen = this.stage == 2 && this.reJoinInterval ? false : true;
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());
 
-
     this.alivePlayers.push(player);
 
-
-    if(this.alivePlayers.length > 1) // Waiting for second player to trigger actual game start
+    if(this.alivePlayers.length > 1 && this.stage < 2) // Waiting for second player to trigger actual game start
         this.startGame(gameServer);
-
 
 };
 
@@ -217,18 +222,18 @@ TourneyEngine.prototype.sortLB = function(lb) {
     for(var i = 0, pos = 0; i < players.length; i++) {
 
         var player = players[i];
-        if (player.isRemoved || !player.cells.length || player.socket.isConnected == false || player.isMi)
+        if(player.isRemoved || !player.cells.length || player.socket.isConnected == false || player.isMi)
             continue;
 
         for(var j = 0; j < pos; j++)
-            if (lb[j]._score < player._score) break;
+            if(lb[j]._score < player._score) break;
 
         lb.splice(j, 0, player);
         pos++;
 
     }
 
-    for (var i = 0; i < lb.length; i++)
+    for(var i = 0; i < lb.length; i++)
         lb[i] = lb[i]._name;
 
 };
@@ -245,6 +250,8 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
             lb.push(this.formatTimer());
             if(this.timer-- <= 0)
                 this.endGame(gameServer);
+            if(!gameServer.disableSpawn)
+                lb.push('Not Closed Yet');
             break;
         case 3: // Trigger game end
             this.sortLB(lb);

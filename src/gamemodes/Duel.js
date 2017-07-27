@@ -12,8 +12,10 @@ function Duel() {
 
     // Config
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
-    this.joinInterval = 5;             // Seconds
+    this.joinInterval = 5;              // Seconds
+    this.reJoinInterval = 0;            // Minutes
     this.restartInterval = 7;           // Seconds
+
 }
 
 
