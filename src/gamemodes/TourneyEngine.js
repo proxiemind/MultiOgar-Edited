@@ -16,12 +16,14 @@ function TourneyEngine() {
     this.stage = 0;                     // 0 = waiting for players / IDLE, 1 = trigger game start, 2 = game is running, 3 = trigger game end
     this.alivePlayers = [];
     this.timer;
+    this.reJoinTimerHolder;
     
     // Local Config
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 5;              // Seconds
     this.reJoinInterval = 0;            // Minutes (Remember to keep it under matchLength)
     this.restartInterval = 7;           // Seconds
+    this.playerDecayRate;               // Player shouldn't shrink before game start
 
 }
 
@@ -50,11 +52,13 @@ TourneyEngine.prototype.onStartGame = function(gameServer) {
     this.timer = this.matchLength;
     gameServer.disableSpawn = this.reJoinInterval ? false : true;
 
+    gameServer.config.playerDecayRate = this.playerDecayRate; // Start Player Mass Decay
+
     for(var i = 0; i < this.alivePlayers.length; i++)
         this.alivePlayers[i].frozen = false;
 
     if(this.reJoinInterval)
-        setTimeout(function(){
+        reJoinTimerHolder = setTimeout(function(){
                 gameServer.disableSpawn = true;
             },
             this.reJoinInterval * 60000 // How many minutes server is still open. No sense to count it like timer or .onTick
@@ -79,6 +83,9 @@ TourneyEngine.prototype.onEndGame = function(gameServer) {
     var alive = [],
         players = this.alivePlayers;
 
+    if(this.reJoinInterval)
+        clearTimeout(reJoinTimerHolder);
+
     while(players.length > 0) { // onCellRemove is making sure to keep track on alivePlayers
 
         var playerTracker = players[0];
@@ -90,6 +97,7 @@ TourneyEngine.prototype.onEndGame = function(gameServer) {
 
     Logger.info('Game just Ended - alive players: ' + alive.join('|'));
 
+    gameServer.config.playerDecayRate = 0; // Stop Player Mass Decay
     gameServer.disableSpawn = false;
     this.reSetupArena(gameServer);
     this.alivePlayers = [];
@@ -148,7 +156,10 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
 
     this.reSetupArena(gameServer);
     gameServer.run = false; // Put all in sleep mode/IDLE, but listen for WebSocket connections
- 
+
+    this.playerDecayRate = gameServer.config.playerDecayRate; // Put settings in cache
+    gameServer.config.playerDecayRate = 0;
+
 };
 
 TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
@@ -201,7 +212,7 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
 
 TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
 
-    if(gameServer.disableSpawn && !this.reJoinInterval)
+    if(gameServer.disableSpawn || player.isRemoved)
         return;
 
     player.color = gameServer.getRandomColor();
