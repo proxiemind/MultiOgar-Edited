@@ -12,15 +12,12 @@ UpdateLeaderboard.prototype.build = function(protocol) {
     switch (this.leaderboardType) {
         case 48:
             // UserText
-            if      (protocol < 11) return this.buildUserText(protocol);
-            else if (protocol < 14) return this.buildUserText13();
-            else                    return this.buildUserText14();
+            return this.buildUserText(protocol);
         case 49:
             // FFA
             if      (protocol < 6 ) return this.buildFfa5();
             else if (protocol < 11) return this.buildFfa6();
-            else if (protocol < 14) return this.buildFfa13();
-            else                    return this.buildFfa14();
+            else                    return this.buildFfa(protocol); // 13/14
         case 50:
             // Team
             return this.buildTeam();
@@ -28,37 +25,18 @@ UpdateLeaderboard.prototype.build = function(protocol) {
             return null;
     }
 }
-// UserText prorocols 5/6/11
+// UserText protocols 5/6/11/13/14
 UpdateLeaderboard.prototype.buildUserText = function(protocol) {
     var writer = new BinaryWriter();
-    writeCount(writer, 0x31, this.leaderboard.length);
+    if      (protocol < 13) writeCount(writer, 0x31, this.leaderboard.length); // 5/6/11
+    else if (protocol < 14) writer.writeUInt8(0x33); // 13
+    else                    writer.writeUInt8(0x35); // 14
     for (var i = 0; i < this.leaderboard.length; i++) {
         var item = this.leaderboard[i] || "";
-        if (protocol < 11) writer.writeUInt32(0);
-        if (protocol < 6) writer.writeStringZeroUnicode(item);
-        else writer.writeStringZeroUtf8(item);
-    }
-    return writer.toBuffer();
-};
-// UserText protocol 13
-UpdateLeaderboard.prototype.buildUserText13 = function () {
-    var writer = new BinaryWriter();
-    writer.writeUInt8(0x33);
-    for (var i = 0; i < this.leaderboard.length; i++) {
-        var item = this.leaderboard[i] || "";
-        writer.writeUInt8(0x02);
-        writer.writeStringZeroUtf8(item);
-    }
-    return writer.toBuffer();
-};
-// UserText protocol 14
-UpdateLeaderboard.prototype.buildUserText14 = function () {
-    var writer = new BinaryWriter();
-    writer.writeUInt8(0x35);
-    for (var i = 0; i < this.leaderboard.length; i++) {
-        var item = this.leaderboard[i] || "";
-        writer.writeUInt8(0x02);
-        writer.writeStringZeroUtf8(item);
+        if      (protocol < 13) writer.writeUInt32(0); // 5/6/11
+        else if (protocol < 15) writer.writeUInt8(0x02); // 13/14
+        if      (protocol < 6 ) writer.writeStringZeroUnicode(item); // diff encode for 5
+        else                    writer.writeStringZeroUtf8(item);
     }
     return writer.toBuffer();
 };
@@ -94,6 +72,7 @@ UpdateLeaderboard.prototype.buildFfa6 = function() {
     return writer.toBuffer();
 };
 // FFA protocol 11
+/* It was switched off anyway, however not removing yet
 UpdateLeaderboard.prototype.buildFfa11 = function() {
     var pos = require('./LeaderboardPosition');
     this.playerTracker.socket.packetHandler.sendPacket(new pos(this.leaderboard.indexOf(this.playerTracker) + 1));
@@ -108,35 +87,12 @@ UpdateLeaderboard.prototype.buildFfa11 = function() {
     }
     return writer.toBuffer();
 };
-// FFA protocol 13
-UpdateLeaderboard.prototype.buildFfa13 = function() {
+*/
+// FFA protocol 13/14
+UpdateLeaderboard.prototype.buildFfa = function(protocol) {
     var writer = new BinaryWriter();
-    writer.writeUInt8(0x33); // Packet ID
-    for (var i = 0; i < this.leaderboardCount; i++) {
-        var item = this.leaderboard[i];
-        if (item == null) return null; // bad leaderboard just don't send it
-        if (item === this.playerTracker) {
-            writer.writeUInt8(0x09);
-            writer.writeUInt16(1);
-        } else {
-            var name = item._name;
-            writer.writeUInt8(0x02);
-            if (name != null && name.length) writer.writeStringZeroUtf8(name);
-            else writer.writeUInt8(0);
-        }
-    }
-    var thing = this.leaderboard.indexOf(this.playerTracker) + 1;
-    var place = (thing <= 10) ? null : thing;
-    if (this.playerTracker.cells.length && place != null) {
-        writer.writeUInt8(0x09);
-        writer.writeUInt16(place);
-    }
-    return writer.toBuffer();
-};
-// FFA protocol 14
-UpdateLeaderboard.prototype.buildFfa14 = function() {
-    var writer = new BinaryWriter();
-    writer.writeUInt8(0x35); // Packet ID
+    if   (protocol < 14) writer.writeUInt8(0x33); // 13
+    else                 writer.writeUInt8(0x35); // 14
     for (var i = 0; i < this.leaderboardCount; i++) {
         var item = this.leaderboard[i];
         if (item == null) return null; // bad leaderboard just don't send it
