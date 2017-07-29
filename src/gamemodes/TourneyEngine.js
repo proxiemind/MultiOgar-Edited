@@ -9,7 +9,7 @@ function TourneyEngine() {
 
     this.ID = 3;
     this.name = "TourneyEngine - Do not use directly!";
-    this.specByLeaderboard = false;
+    this.specByLeaderboard = true;
     this.packetLB = 48;
 
     // Engine Specific Variables
@@ -246,6 +246,8 @@ TourneyEngine.prototype.sortLB = function(lb) {
 
     for(var i = 0; i < lb.length; i++)
         lb[i] = lb[i]._name;
+
+    this.rankOne = lb[0];
 
 };
 
