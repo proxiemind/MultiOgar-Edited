@@ -244,10 +244,10 @@ TourneyEngine.prototype.sortLB = function(lb) {
 
     }
 
+    this.rankOne = lb[0];
+
     for(var i = 0; i < lb.length; i++)
         lb[i] = lb[i]._name;
-
-    this.rankOne = lb[0];
 
 };
 
