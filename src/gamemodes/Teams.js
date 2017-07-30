@@ -1,4 +1,5 @@
 var Mode = require('./Mode');
+var Entity = require('../entity');
 
 function Teams() {
     Mode.apply(this, Array.prototype.slice.call(arguments));
@@ -11,7 +12,7 @@ function Teams() {
     this.colorFuzziness = 32;
     
     // Special
-    this.teamAmount = 3; // Amount of teams. Having more than 3 teams will cause the leaderboard to work incorrectly (client issue).
+    this.teamAmount = 5; // Amount of teams. Having more than 3 teams will cause the leaderboard to work incorrectly (client issue).
     this.colors = [{
             'r': 223,
             'g': 0,
@@ -24,7 +25,15 @@ function Teams() {
             'r': 0,
             'g': 0,
             'b': 223
-        },]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
+        }, {
+            'r': 140,
+            'g': 50,
+            'b': 223
+        }, {
+            'r': 223,
+            'g': 223,
+            'b': 0
+        }]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
     this.nodes = []; // Teams
 }
 
@@ -73,6 +82,17 @@ Teams.prototype.onServerInit = function (gameServer) {
             this.nodes[client.team].push(cell);
         }
     }
+
+    // Virus is not giving any mass in Team Mode
+    Entity.Cell.prototype.onEat = function (prey) {
+        if (!this.gameServer.config.playerBotGrow) {
+            if (this._size >= 250 && prey._size <= 41 && prey.cellType == 0)
+                prey.radius = 0; // Can't grow from players under 17 mass
+        }
+        if(prey.cellType !== 2)
+            this.setSize(Math.sqrt(this.radius + prey.radius));
+    };
+
 };
 
 Teams.prototype.onPlayerInit = function (gameServer, player) {
