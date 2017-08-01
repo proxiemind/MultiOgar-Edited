@@ -845,7 +845,8 @@ GameServer.prototype.spawnPlayer = function(player, pos) {
         && eject && eject.boostDistance < 1) {
         // Spawn from ejected mass
         pos = eject.position.clone();
-        player.color = eject.color;
+        if(!this.gameMode.haveTeams) // Fix for spawning with wrong color :D Ninja ability disabled :P
+            player.color = eject.color;
         size = Math.max(size, eject._size * 1.15)
     }
     // Spawn player safely (do not check minions)
