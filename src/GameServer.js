@@ -570,10 +570,9 @@ GameServer.prototype.mainLoop = function() {
             // Scan for eat/rigid collisions and resolve them
             this.quadTree.find(cell.quadItem.bound, function(check) {
                 var m = self.checkCellCollision(cell, check);
-                if (self.checkRigidCollision(m))
-                    self.resolveRigidCollision(m);
-                else if (check != cell)
-                    eatCollisions.unshift(m);
+                if      (self.checkTeamCollision(m))   self.resolveTeamCollision(m);
+                else if (self.checkRigidCollision(m))  self.resolveRigidCollision(m);
+                else if (check != cell)                eatCollisions.unshift(m);
             });
             this.movePlayer(cell, cell.owner);
             this.boostCell(cell);
@@ -735,6 +734,22 @@ GameServer.prototype.resolveRigidCollision = function(m) {
     // apply extrusion force
     m.cell.position.sub2(m.p, r2);
     m.check.position.add(m.p, r1);
+};
+
+// Checks if collision is team mode body collision
+GameServer.prototype.checkTeamCollision = function(m) {
+    return m.cell.owner
+        && m.check.owner
+        && m.cell.owner != m.check.owner
+        && this.gameMode.haveTeams 
+        && m.cell.owner.team == m.check.owner.team ? true : false;
+};
+
+// Resolves team mode body collisions
+GameServer.prototype.resolveTeamCollision = function(m) {
+    if (m.cell.boostDistance > 150 || m.check.boostDistance > 150)
+        return; // cells are still boosting
+    this.resolveRigidCollision(m);
 };
 
 // Resolves non-rigid body collision

@@ -35,6 +35,7 @@ function Teams() {
             'b': 0
         }]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
     this.nodes = []; // Teams
+
 }
 
 module.exports = Teams;
@@ -112,7 +113,7 @@ Teams.prototype.onCellRemove = function (cell) {
         this.nodes[cell.owner.team].splice(index, 1);
     }
 };
-
+/*
 Teams.prototype.onCellMove = function (cell, gameServer) {
     // Find team
     for (var i = 0; i < cell.owner.visibleNodes.length; i++) {
@@ -134,7 +135,7 @@ Teams.prototype.onCellMove = function (cell, gameServer) {
         }
     }
 };
-
+*/
 Teams.prototype.updateLB = function (gameServer) {
     gameServer.leaderboardType = this.packetLB;
     var total = 0;
