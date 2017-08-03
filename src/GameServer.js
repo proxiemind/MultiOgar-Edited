@@ -71,6 +71,7 @@ function GameServer() {
         serverMaxLB: 10,            // Controls the maximum players displayed on the leaderboard.
         serverChat: 1,              // Allows the usage of server chat. 0 = no chat, 1 = use chat.
         serverChatAscii: 1,         // Set to 1 to disable non-ANSI letters in the chat (english only)
+        serverChatBadWords: 0,      // Set to 1 to enable bad words verification
         separateChatForTeams: 0,    // Set to 1 to separate chat for game modes with teams like 'Teams'
         serverName: 'MultiOgar-Edited #1',                  // Server name
         serverWelcome1: 'Welcome to MultiOgar-Edited!',     // First server welcome message
@@ -473,10 +474,9 @@ GameServer.prototype.onChatMessage = function(from, to, message) {
         from.socket.playerCommand.executeCommandLine(message);
         return;
     }
-    if (!this.config.serverChat || (from && from.isMuted)) {
-        // chat is disabled or player is muted
-        return;
-    }
+    if (!this.config.serverChat || (from && from.isMuted))
+        return; // chat is disabled or player is muted
+
     if (message.length > 64) {
         message = message.slice(0, 64);
     }
@@ -488,7 +488,7 @@ GameServer.prototype.onChatMessage = function(from, to, message) {
             }
         }
     }
-    if (this.checkBadWord(message) && from) {
+    if (this.config.serverChatBadWords && from && this.checkBadWord(message)) {
         this.sendChatMessage(null, from, "Stop insulting others! Keep calm and be friendly please");
         return;
     }
