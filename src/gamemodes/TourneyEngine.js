@@ -220,6 +220,8 @@ TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());
 
+    this.rankOne = player; // Fixing Spectate mode
+
     this.alivePlayers.push(player);
 
     if(this.alivePlayers.length > 1 && this.stage < 2) // Waiting for second player to trigger actual game start

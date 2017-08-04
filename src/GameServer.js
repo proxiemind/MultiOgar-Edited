@@ -457,10 +457,9 @@ GameServer.prototype.updateLeaderboard = function() {
         clients.sort(function(a, b) {
             return b.playerTracker._score - a.playerTracker._score;
         });
-        this.largestClient = null;
-        if (clients[0]) this.largestClient = clients[0].playerTracker;
+        this.largestClient = clients[0] && clients[0].playerTracker.cells.length ? clients[0].playerTracker : null;
     } else {
-        this.largestClient = this.gameMode.rankOne;
+        this.largestClient = this.gameMode.rankOne && this.gameMode.rankOne.cells.length ? this.gameMode.rankOne : null;
     }
 };
 
