@@ -746,7 +746,7 @@ GameServer.prototype.checkTeamCollision = function(m) {
 
 // Resolves team mode body collisions
 GameServer.prototype.resolveTeamCollision = function(m) {
-    if (m.cell.boostDistance > 150 || m.check.boostDistance > 150)
+    if (m.cell.boostDistance > 200 || m.check.boostDistance > 200)
         return; // cells are still boosting
     this.resolveRigidCollision(m);
 };
@@ -783,6 +783,10 @@ GameServer.prototype.resolveCollision = function(m) {
 
     // Remove cell
     this.removeNode(cell);
+
+    if(this.gameMode.scoreMode && cell.cellType === 0 && !cell.owner.cells.length)
+        this.gameMode.updateKill(check.owner);
+
 };
 
 GameServer.prototype.splitPlayerCell = function(client, parent, angle, mass) {

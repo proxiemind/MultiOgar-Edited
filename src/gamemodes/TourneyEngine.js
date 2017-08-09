@@ -19,11 +19,14 @@ function TourneyEngine() {
     this.reJoinTimerHolder;
     
     // Local Config
+    this.scoreMode = 0;                 // 0 = the biggest, 1 = kill/death ratio
+    this.hideNicknames = 0;             // 0 = Show, 1 = Hide
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 5;              // Seconds
     this.reJoinInterval = 0;            // Minutes (Remember to keep it under matchLength)
     this.restartInterval = 7;           // Seconds
     this.playerDecayRate;               // Player shouldn't shrink before game start
+    this.serverMaxLB = 20;              // Search for in gameserver.ini
 
 }
 
@@ -89,9 +92,15 @@ TourneyEngine.prototype.onEndGame = function(gameServer) {
     while(players.length > 0) { // onCellRemove is making sure to keep track on alivePlayers
 
         var playerTracker = players[0];
+
         alive.push(playerTracker._name + ':' + playerTracker._score);
         while(playerTracker.cells.length > 0)
             gameServer.removeNode(playerTracker.cells[0]);
+
+        if(this.scoreMode === 1) {
+            playerTracker.kills = 0;
+            playerTracker.deaths = 0;
+        }
 
     }
 
@@ -157,6 +166,8 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
     this.reSetupArena(gameServer);
     gameServer.run = false; // Put all in sleep mode/IDLE, but listen for WebSocket connections
 
+    this.serverMaxLB = gameServer.config.serverMaxLB;
+
     this.playerDecayRate = gameServer.config.playerDecayRate; // Put settings in cache
     gameServer.config.playerDecayRate = 0;
 
@@ -165,6 +176,11 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
 TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
 
     gameServer.run = true; // Reawake server
+
+    if(this.scoreMode === 1) {
+        player.kills = 0;
+        player.deaths = 0;
+    }
 
 };
 
@@ -208,6 +224,17 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
         this.stage = 0;
     }
 
+    if(this.scoreMode === 1)
+        owner.deaths++;
+
+};
+
+TourneyEngine.prototype.updateKill = function(player) {
+
+    var index = this.alivePlayers.indexOf(player);
+    if(index !== -1)
+        this.alivePlayers[index].kills++;
+
 };
 
 TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
@@ -219,6 +246,8 @@ TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
     player.frozen = this.stage == 2 && this.reJoinInterval ? false : true;
     // Spawn player
     gameServer.spawnPlayer(player, gameServer.randomPos());
+    player._nameUnicode = this.hideNicknames ? null : player._nameUnicode;
+    player._nameUtf8 = this.hideNicknames ? null : player._nameUtf8;
 
     this.rankOne = player; // Fixing Spectate mode
 
@@ -238,8 +267,10 @@ TourneyEngine.prototype.sortLB = function(lb) {
         if(player.isRemoved || !player.cells.length || player.socket.isConnected == false || player.isMi)
             continue;
 
-        for(var j = 0; j < pos; j++)
-            if(lb[j]._score < player._score) break;
+        for(var j = 0; j < pos; j++) {
+            if(!this.scoreMode && lb[j]._score < player._score) break;
+            if(this.scoreMode === 1 && lb[j].kills < player.kills) break;
+        }
 
         lb.splice(j, 0, player);
         pos++;
@@ -249,7 +280,9 @@ TourneyEngine.prototype.sortLB = function(lb) {
     this.rankOne = lb[0];
 
     for(var i = 0; i < lb.length; i++)
-        lb[i] = lb[i]._name;
+        lb[i] = (this.scoreMode === 1 ? '[' + lb[i].kills + '|' + lb[i].deaths + '] ' : '') + lb[i]._name;
+
+    lb.splice(this.serverMaxLB);
 
 };
 
@@ -266,7 +299,7 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
             if(this.timer-- <= 0)
                 this.endGame(gameServer);
             if(!gameServer.disableSpawn)
-                lb.push('Not Closed Yet');
+                lb.push('Server Open');
             break;
         case 3: // Trigger game end
             this.sortLB(lb);
