@@ -28,7 +28,7 @@ function TourneyEngine() {
     this.playerDecayRate;               // Player shouldn't shrink before game start
     this.serverMaxLB = 20;              // Search for in gameserver.ini
     this.countDC = 0;                   // For those that are not closing game :P
-    this.DCLimit = 1;                   // And Limit after which server is terminated
+    this.DCLimit = 5;                   // And Limit after which server is terminated
     this.sleepMode = 1;                 // 0 = Do nothing, 1 = Put in Sleep, 2 = Kill Server
 
 }
