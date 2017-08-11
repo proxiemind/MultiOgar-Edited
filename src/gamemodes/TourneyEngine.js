@@ -27,9 +27,14 @@ function TourneyEngine() {
     this.restartInterval = 7;           // Seconds
     this.playerDecayRate;               // Player shouldn't shrink before game start
     this.serverMaxLB = 20;              // Search for in gameserver.ini
+    this.countDC = 0;                   // For those that are not closing game :P
+    this.DCLimit = 1;                   // And Limit after which server is terminated
+    this.sleepMode = 1;                 // 0 = Do nothing, 1 = Put in Sleep, 2 = Kill Server
 
 }
 
+var sleepMode = 1,                      // Just a handler for setTimeout
+    sleepExecute = true;
 
 module.exports = TourneyEngine;
 TourneyEngine.prototype = new Mode();
@@ -171,12 +176,14 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
     this.playerDecayRate = gameServer.config.playerDecayRate; // Put settings in cache
     gameServer.config.playerDecayRate = 0;
 
+    sleepMode = this.sleepMode;
+
 };
 
 TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
 
     gameServer.run = true; // Reawake server
-
+    sleepExecute = false;
     if(this.scoreMode === 1) {
         player.kills = 0;
         player.deaths = 0;
@@ -186,15 +193,35 @@ TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
 
 TourneyEngine.prototype.onPlayerDC = function(gameServer) {
 
+    if(!sleepMode)
+        return;
+
     for(var i = 0; i < gameServer.clients.length; i++)
         if(gameServer.clients[i].playerTracker.socket.isConnected)
             return;
 
+    if(sleepMode == 2 && gameServer.clients[0].playerTracker.socket._closeCode == 1000 && ++this.countDC >= this.DCLimit) {
+        Logger.warn('AFK player - Server process.exit Now!');
+        process.exit();
+    }
+
+
+    sleepExecute = true;
     setTimeout(function(){
-            gameServer.run = false; // Put all in sleep mode/IDLE, but listen for WebSocket connections
-            Logger.warn('Putting Server in Sleep Mode');
+            if(!sleepExecute)
+                return;
+            switch(sleepMode) {
+                case 1:
+                    gameServer.run = false; // Put all in sleep mode/IDLE, but listen for WebSocket connections
+                    Logger.warn('Putting Server in Sleep Mode');
+                    break;
+                case 2:
+                    Logger.warn('Server process.exit Now!');
+                    process.exit();
+                    break;
+            }
         },
-        (this.stage > 0 ? (this.joinInterval + this.restartInterval) * 1000 : 0) // To ensure server will not stuck in the middle of restarting or something
+        (sleepMode == 2 || this.stage > 0 ? (this.joinInterval + this.restartInterval) * 1000 : 0) // To ensure server will not stuck in the middle of restarting or something
     );
 
 };

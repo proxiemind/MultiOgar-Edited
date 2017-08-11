@@ -15,6 +15,7 @@ function Duel() {
     this.joinInterval = 5;              // Seconds
     this.reJoinInterval = 0;            // Minutes
     this.restartInterval = 7;           // Seconds
+    this.sleepMode = 2;                 // 0 = Do nothing, 1 = Put in Sleep, 2 = Kill Server
 
 }
 
