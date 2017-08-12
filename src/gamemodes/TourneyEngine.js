@@ -178,6 +178,18 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
 
     sleepMode = this.sleepMode;
 
+    if(sleepMode < 2)
+        return;
+
+    setTimeout(function(){
+            if(!sleepExecute)
+                return;
+
+            Logger.warn('AFK or connection error - process.exit Now!');
+            process.exit();
+        }, 30000
+    );
+
 };
 
 TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
