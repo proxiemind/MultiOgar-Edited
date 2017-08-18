@@ -39,7 +39,7 @@ Vec2.prototype.clone = function() {
 };
 
 Vec2.prototype.dist = function() {
-    return ~~this.x * ~~this.x + ~~this.y * ~~this.y;
+    return this.x * this.x + this.y * this.y;
 };
 
 Vec2.prototype.sqDist = function() {
