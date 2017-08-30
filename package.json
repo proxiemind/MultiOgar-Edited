@@ -7,8 +7,8 @@
     "license": "Apache-2.0",
     "main": "src/index.js",
     "dependencies": {
-        "ws": "1.1.0",
-        "figlet":"latest"
+        "uws": "latest",
+        "figlet": "latest"
     },
     "devDependencies": {},
     "scripts": {
