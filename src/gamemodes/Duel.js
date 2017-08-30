@@ -7,8 +7,6 @@ function Duel() {
 
     this.ID = 4;
     this.name = "Duel";
-    // this.specByLeaderboard = false;
-    // this.packetLB = 48;
 
     // Config
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
@@ -16,6 +14,9 @@ function Duel() {
     this.reJoinInterval = 0;            // Minutes
     this.restartInterval = 7;           // Seconds
     this.sleepMode = 2;                 // 0 = Do nothing, 1 = Put in Sleep, 2 = Kill Server
+    this.scoreMode = 0;                 // 0 = the biggest, 1 = kill/death ratio, 2 = teams
+    this.mechanics = 0;                 // 0 = classic, 1 team mode mechanics, 2 experimental (not available yet)
+    this.minPlayers = 2;                // Minimum number of players to trigger game start | 2 = 1v1 / 4 = 2v2 / 6 = 2v2v2 / 9 = 3v3v3
 
 }
 

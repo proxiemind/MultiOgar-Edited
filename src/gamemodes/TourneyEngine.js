@@ -17,9 +17,8 @@ function TourneyEngine() {
     this.alivePlayers = [];
     this.timer;
     this.reJoinTimerHolder;
-    
-    // Local Config
-    this.scoreMode = 0;                 // 0 = the biggest, 1 = kill/death ratio
+    this.scoreMode = 0;                 // 0 = the biggest, 1 = kill/death ratio, 2 = teams
+    this.mechanics = 0;                 // 0 = classic, 1 team mode mechanics, 2 experimental (for future)
     this.hideNicknames = 0;             // 0 = Show, 1 = Hide
     this.matchLength = 15 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 5;              // Seconds
@@ -30,6 +29,24 @@ function TourneyEngine() {
     this.countDC = 0;                   // For those that are not closing game :P
     this.DCLimit = 5;                   // And Limit after which server is terminated
     this.sleepMode = 1;                 // 0 = Do nothing, 1 = Put in Sleep, 2 = Kill Server
+    this.minPlayers = 2;                // Minimum number of players to trigger game start
+
+    // Teams Config
+    this.colorFuzziness = 32;
+    this.colors = [{
+            'r': 223,
+            'g': 0,
+            'b': 0
+        }, {
+            'r': 0,
+            'g': 223,
+            'b': 0
+        }, {
+            'r': 0,
+            'g': 0,
+            'b': 223
+        }]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
+    this.fixedPlayerPos = [];
 
 }
 
@@ -80,7 +97,7 @@ TourneyEngine.prototype.endGame = function() {
     this.timer = this.restartInterval;
     var players = this.alivePlayers;
 
-    if(players.length > 1)
+    if(players.length > 1 && this.scoreMode !== 2)
         for(var i = 0; i < players.length; i++)
             players[i].frozen = true;
 
@@ -134,9 +151,9 @@ TourneyEngine.prototype.reSetupArena = function(gameServer) {
     // ORIGINALLY TAKEN FROM gameServer.spawnCells()
     // spawn food at random size
     var spawnCount = gameServer.config.foodMinAmount - gameServer.nodesFood.length;
-    for (var i = 0; i < spawnCount; i++) {
+    for(var i = 0; i < spawnCount; i++) {
         var cell = new Entity.Food(gameServer, null, gameServer.randomPos(), gameServer.config.foodMinSize);
-        if (gameServer.config.foodMassGrow) {
+        if(gameServer.config.foodMassGrow) {
             var maxGrow = gameServer.config.foodMaxSize - cell._size;
             cell.setSize(cell._size += maxGrow * Math.random());
         }
@@ -144,7 +161,7 @@ TourneyEngine.prototype.reSetupArena = function(gameServer) {
         gameServer.addNode(cell);
     }
 
-    while (gameServer.nodesVirus.length < gameServer.config.virusMinAmount) {
+    while(gameServer.nodesVirus.length < gameServer.config.virusMinAmount) {
         var virus = new Entity.Virus(gameServer, null, gameServer.randomPos(), gameServer.config.virusMinSize);
         gameServer.addNode(virus);
     }
@@ -153,7 +170,7 @@ TourneyEngine.prototype.reSetupArena = function(gameServer) {
 
 TourneyEngine.prototype.formatTimer = function() {
     
-    if (this.timer <= 0)
+    if(this.timer <= 0)
         return "0:00";
 
     // Format
@@ -162,6 +179,67 @@ TourneyEngine.prototype.formatTimer = function() {
     sec = (sec > 9) ? sec : "0" + sec.toString();
     return min + ":" + sec;
 
+};
+
+TourneyEngine.prototype.setupTeams = function(gameServer) {
+
+    var Vec2 = require('../modules/Vec2');
+    this.haveTeams = this.mechanics === 1 ? true : false;
+
+    // PLAYERs fixed pos
+    this.fixedPlayerPos = [
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 - 6000,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6000
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 - 6300,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6300
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 - 6600,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6600
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 + 6000,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6000
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 + 6300,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6300
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2 + 6600,
+                    gameServer.border.miny + gameServer.border.height / 2 + 6600
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2,
+                    gameServer.border.miny + gameServer.border.height / 2 - 6000
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2,
+                    gameServer.border.miny + gameServer.border.height / 2 - 6300
+                ),
+            new Vec2(
+                    gameServer.border.minx + gameServer.border.width / 2,
+                    gameServer.border.miny + gameServer.border.height / 2 - 6600
+                )
+        ];
+
+};
+
+TourneyEngine.prototype.fuzzColorComponent = function (component) {
+    component += Math.random() * this.colorFuzziness >> 0;
+    return component;
+};
+
+TourneyEngine.prototype.getTeamColor = function (team) {
+    var color = this.colors[team];
+    return {
+        r: this.fuzzColorComponent(color.r),
+        b: this.fuzzColorComponent(color.b),
+        g: this.fuzzColorComponent(color.g)
+    };
 };
 
 // Override
@@ -177,6 +255,9 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
     gameServer.config.playerDecayRate = 0;
 
     sleepMode = this.sleepMode;
+
+    if(this.scoreMode === 2) // 2 = Teams (remember, doesn't mean that there are Team Mode mechanics on)
+        this.setupTeams(gameServer);
 
     if(sleepMode < 2)
         return;
@@ -196,9 +277,18 @@ TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
 
     gameServer.run = true; // Reawake server
     sleepExecute = false;
-    if(this.scoreMode === 1) {
-        player.kills = 0;
-        player.deaths = 0;
+    switch(this.scoreMode) {
+        case 0:
+            break; // Optimisation for default Duel
+        case 2:
+            player.team =   this.minPlayers === 4 ? ( this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2
+                            this.minPlayers === 6 ? ( this.alivePlayers.length >= 4 ? 2 : this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2v2
+                                                    ( this.alivePlayers.length >= 6 ? 2 : this.alivePlayers.length >= 4 ? 1 : 0 );// 3v3v3
+            break;
+        case 1:
+            player.kills = 0;
+            player.deaths = 0;
+            break;
     }
 
 };
@@ -256,7 +346,7 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
     }
 
     // Monitor Alive Players & end game if conditions apply
-    if(this.alivePlayers.length <= 1 && this.stage == 2) {
+    if(this.alivePlayers.length <= 1 && this.stage == 2) { // Classic - Last Man Standing
         this.endGame();
     } else if(this.alivePlayers.length <= 1 && this.stage < 2) {
         this.timer = 0;
@@ -265,6 +355,16 @@ TourneyEngine.prototype.onCellRemove = function(cell) {
 
     if(this.scoreMode === 1)
         owner.deaths++;
+
+    if(this.scoreMode === 2 && this.alivePlayers.length <= 3) {
+
+        for(var i = 0; i < this.alivePlayers.length; i++)
+            if(this.alivePlayers[i].team === owner.team)
+                return;
+
+        this.endGame();
+
+    }
 
 };
 
@@ -281,10 +381,13 @@ TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
     if(gameServer.disableSpawn || player.isRemoved)
         return;
 
-    player.color = gameServer.getRandomColor();
+    player.color = this.scoreMode === 2 ? this.getTeamColor(player.team) : gameServer.getRandomColor();
     player.frozen = this.stage == 2 && this.reJoinInterval ? false : true;
     // Spawn player
-    gameServer.spawnPlayer(player, gameServer.randomPos());
+    var index = this.minPlayers === 4 ? ( this.alivePlayers.length >= 2 ? this.alivePlayers.length + 1 : this.alivePlayers.length ) :// 2v2
+                this.minPlayers === 6 ? ( this.alivePlayers.length >= 4 ? this.alivePlayers.length + 2 : this.alivePlayers.length >= 2 ? this.alivePlayers.length + 1 : this.alivePlayers.length ) :// 2v2v2
+                this.alivePlayers.length;// 3v3v3
+    gameServer.spawnPlayer(player, ( this.scoreMode === 2 ? this.fixedPlayerPos[index] : gameServer.randomPos() ) );
     player._nameUnicode = this.hideNicknames ? null : player._nameUnicode;
     player._nameUtf8 = this.hideNicknames ? null : player._nameUtf8;
 
@@ -292,7 +395,7 @@ TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
 
     this.alivePlayers.push(player);
 
-    if(this.alivePlayers.length > 1 && this.stage < 2) // Waiting for second player to trigger actual game start
+    if(this.alivePlayers.length >= this.minPlayers && this.stage < 2) // Waiting for min number of players to trigger actual game start
         this.startGame(gameServer);
 
 };
@@ -317,11 +420,20 @@ TourneyEngine.prototype.sortLB = function(lb) {
     }
 
     this.rankOne = lb[0];
+    lb.splice(this.serverMaxLB); // Should increase performance a bit in this place
 
     for(var i = 0; i < lb.length; i++)
-        lb[i] = (this.scoreMode === 1 ? '[' + lb[i].kills + '|' + lb[i].deaths + '] ' : '') + lb[i]._name;
-
-    lb.splice(this.serverMaxLB);
+        switch(this.scoreMode) {
+            case 0:
+                lb[i] = lb[i]._name;
+                break;
+            case 2:
+                lb[i] = '[' + lb[i].team + '] ' + lb[i]._name;
+                break;
+            case 1:
+                lb[i] = '[' + lb[i].kills + '|' + lb[i].deaths + '] ' + lb[i]._name;
+                break;
+        }
 
 };
 
