@@ -48,6 +48,9 @@ function TourneyEngine() {
         }]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
     this.fixedPlayerPos = [];
 
+    // Experimental Config
+    this.nodesMother = [];
+
 }
 
 var sleepMode = 1,                      // Just a handler for setTimeout
@@ -148,6 +151,9 @@ TourneyEngine.prototype.reSetupArena = function(gameServer) {
     while(gameServer.nodesVirus.length)
         gameServer.removeNode(gameServer.nodesVirus[0]);
 
+    while(this.nodesMother.length)
+        gameServer.removeNode(this.nodesMother[0]);
+
     // ORIGINALLY TAKEN FROM gameServer.spawnCells()
     // spawn food at random size
     var spawnCount = gameServer.config.foodMinAmount - gameServer.nodesFood.length;
@@ -242,6 +248,65 @@ TourneyEngine.prototype.getTeamColor = function (team) {
     };
 };
 
+TourneyEngine.prototype.setupExperimental = function(gameServer) {
+
+    // Ovveride functions for special virus mechanics
+    var self = this;
+    Entity.Virus.prototype.onEat = function (prey) {
+        // Pushes the virus
+        this.setBoost(220, prey.boostDirection.angle());
+    };
+    Entity.MotherCell.prototype.onAdd = function () {
+        self.nodesMother.push(this);
+    };
+    Entity.MotherCell.prototype.onRemove = function () {
+        var index = self.nodesMother.indexOf(this);
+        if (index != -1) 
+            self.nodesMother.splice(index, 1);
+    };
+
+    TourneyEngine.prototype.spawnMotherCell = function (gameServer) {
+
+        // Checks if there are enough mother cells on the map
+        if (this.nodesMother.length >= this.motherMinAmount) {
+            return;
+        }
+        // Spawn if no cells are colliding
+        var mother = new Entity.MotherCell(gameServer, null, gameServer.randomPos(), 149);
+        if (!gameServer.willCollide(mother))
+            gameServer.addNode(mother);
+
+    };
+
+    //this.nodesMother = []; - moved to top
+    this.tickMotherSpawn = 0;
+    this.tickMotherUpdate = 0;
+    this.motherSpawnInterval = 25 * 5;  // How many ticks it takes to spawn another mother cell (5 seconds)
+    this.motherUpdateInterval = 2;      // How many ticks it takes to spawn mother food (1 second)
+    this.motherMinAmount = 10;
+
+    TourneyEngine.prototype.onTick = function (gameServer) {
+
+        // Mother Cell Spawning
+        if (this.tickMotherSpawn >= this.motherSpawnInterval) {
+            this.tickMotherSpawn = 0;
+            this.spawnMotherCell(gameServer);
+        } else {
+            this.tickMotherSpawn++;
+        }
+        if (this.tickMotherUpdate >= this.motherUpdateInterval) {
+            this.tickMotherUpdate = 0;
+            for (var i = 0; i < this.nodesMother.length; i++) {
+                this.nodesMother[i].onUpdate();
+            }
+        } else {
+            this.tickMotherUpdate++;
+        }
+
+    };
+
+};
+
 // Override
 
 TourneyEngine.prototype.onServerInit = function(gameServer) {
@@ -258,6 +323,9 @@ TourneyEngine.prototype.onServerInit = function(gameServer) {
 
     if(this.scoreMode === 2) // 2 = Teams (remember, doesn't mean that there are Team Mode mechanics on)
         this.setupTeams(gameServer);
+
+    if(this.mechanics === 2) // Experimental
+        this.setupExperimental(gameServer);
 
     if(sleepMode < 2)
         return;
