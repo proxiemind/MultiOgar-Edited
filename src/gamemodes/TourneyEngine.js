@@ -348,11 +348,6 @@ TourneyEngine.prototype.onPlayerInit = function(gameServer, player) {
     switch(this.scoreMode) {
         case 0:
             break; // Optimisation for default Duel
-        case 2:
-            player.team =   this.minPlayers === 4 ? ( this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2
-                            this.minPlayers === 6 ? ( this.alivePlayers.length >= 4 ? 2 : this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2v2
-                                                    ( this.alivePlayers.length >= 6 ? 2 : this.alivePlayers.length >= 4 ? 1 : 0 );// 3v3v3
-            break;
         case 1:
             player.kills = 0;
             player.deaths = 0;
@@ -449,6 +444,9 @@ TourneyEngine.prototype.onPlayerSpawn = function(gameServer, player) {
     if(gameServer.disableSpawn || player.isRemoved)
         return;
 
+    player.team =   this.minPlayers === 4 ? ( this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2
+                    this.minPlayers === 6 ? ( this.alivePlayers.length >= 4 ? 2 : this.alivePlayers.length >= 2 ? 1 : 0 ) :// 2v2v2
+                                            ( this.alivePlayers.length >= 6 ? 2 : this.alivePlayers.length >= 4 ? 1 : 0 );// 3v3v3
     player.color = this.scoreMode === 2 ? this.getTeamColor(player.team) : gameServer.getRandomColor();
     player.frozen = this.stage == 2 && this.reJoinInterval ? false : true;
     // Spawn player
