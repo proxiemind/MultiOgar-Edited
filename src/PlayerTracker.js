@@ -268,7 +268,7 @@ PlayerTracker.prototype.sendUpdate = function() {
         if (this.viewNodes[newIndex].nodeId > this.clientNodes[oldIndex].nodeId) {
             var node = this.clientNodes[oldIndex];
             if (node.isRemoved) eatNodes.push(node);
-            else delNodes.push(node);
+            else if(node.owner != this) delNodes.push(node);
             oldIndex++;
             continue;
         }
