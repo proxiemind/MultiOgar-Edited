@@ -876,7 +876,7 @@ GameServer.prototype.willCollide = function(cell) {
         maxx: cell.position.x + cell._size,
         maxy: cell.position.y + cell._size
     }, function(n) {
-        if (n.cellType == 0) notSafe = true;
+        if (n.cellType == 0 || n.cellType == 2) notSafe = true;
     });
     return notSafe;
 };

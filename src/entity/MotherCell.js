@@ -25,9 +25,7 @@ MotherCell.prototype.onEaten = Virus.prototype.onEaten; // Copies the virus prot
 MotherCell.prototype.canEat = function (cell) {
     var maxMass = this.gameServer.config.motherCellMaxMass;
     if (maxMass && this._mass >= maxMass) return false;
-    return cell.cellType == 0 ||  // can eat player cell
-           cell.cellType == 2 ||  // can eat virus
-           cell.cellType == 3;    // can eat ejected mass
+    return true; // Can eat everything, including pellets, quite important, reduces lag
 };
 
 MotherCell.prototype.onUpdate = function () {
