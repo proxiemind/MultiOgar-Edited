@@ -34,7 +34,9 @@ function Teams() {
             'g': 223,
             'b': 0
         }]; // Make sure you add extra colors here if you wish to increase the team amount [Default colors are: Red, Green, Blue]
-    this.nodes = []; // Teams
+    this.nodes = []; // Teams cells
+    this.teamPlayers = [];
+    this.nextPlayerTeam = 0;
 
 }
 
@@ -70,6 +72,7 @@ Teams.prototype.onServerInit = function (gameServer) {
     // Set up teams
     for (var i = 0; i < this.teamAmount; i++) {
         this.nodes[i] = [];
+        this.teamPlayers[i] = 0;
     }
     
     // migrate current players to team mode
@@ -97,8 +100,34 @@ Teams.prototype.onServerInit = function (gameServer) {
 };
 
 Teams.prototype.onPlayerInit = function (gameServer, player) {
-    // Get random team
-    player.team = Math.floor(Math.random() * this.teamAmount);
+    // Get (not so random anymore) team
+
+    var pickRandom = ~~(Math.random() * this.teamAmount);
+
+    // First, exclude from spawning in to dominating team
+    var massTotal = 0;
+    for(var i = 0; i < this.teamAmount; i++) {
+        massTotal += gameServer.leaderboard[i];
+    }
+    var excluded = gameServer.leaderboard[pickRandom] > massTotal / 2 ? 1 : 0;
+
+    // Follow next selection or not, 1 / 20 chance
+    if(~~(Math.random() * 20) === 19) {
+
+        player.team = excluded ? (pickRandom + 1 > this.teamAmount ? pickRandom-- : pickRandom++) : pickRandom;
+        this.teamPlayers[player.team]++;
+        return;
+
+    }
+
+    // Next Selection is simply assign player in order, when team is not dominating
+    var i = this.nextPlayerTeam;
+    this.nextPlayerTeam = gameServer.leaderboard[i] > massTotal / 2 ? (i + 1 >= this.teamAmount ? i-1 : i+1) : i;
+    player.team = this.nextPlayerTeam;
+    if(++this.nextPlayerTeam >= this.teamAmount)
+        this.nextPlayerTeam = 0
+
+    
 };
 
 Teams.prototype.onCellAdd = function (cell) {
