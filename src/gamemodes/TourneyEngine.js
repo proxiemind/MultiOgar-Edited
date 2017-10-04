@@ -510,7 +510,7 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
     switch(this.stage) {
         case 2: // Game is running
             this.sortLB(lb);
-            lb.push('--------');
+            lb.push('----- cose.io -----');
             lb.push('Time Limit:');
             lb.push(this.formatTimer());
             if(this.timer-- <= 0)
@@ -520,7 +520,7 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
             break;
         case 3: // Trigger game end
             this.sortLB(lb);
-            lb[1] = '--------';
+            lb[1] = '----- cose.io -----';
             lb[2] = 'WINS!';
             lb[3] = 'Restart in:';
             lb[4] = this.timer.toString();
@@ -529,7 +529,7 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
             break;
         case 1: // Trigger game start
             this.sortLB(lb);
-            lb.push('--------');
+            lb.push('----- cose.io -----');
             lb.push('Game starting in:');
             lb.push(this.timer.toString());
             if(this.timer-- <= 0)
@@ -537,7 +537,7 @@ TourneyEngine.prototype.updateLB = function(gameServer, lb) {
             break;
         default: // Case 0: IDLE game stage or 1 player is waiting
             lb[0] = 'Awaiting Players:';
-            lb[1] = this.alivePlayers.length + '/' + gameServer.config.serverMaxConnections;
+            lb[1] = this.alivePlayers.length + '/' + (this.minPlayers != gameServer.config.serverMaxConnections ? this.minPlayers + '-' + gameServer.config.serverMaxConnections : gameServer.config.serverMaxConnections);
             break;
     }
 
