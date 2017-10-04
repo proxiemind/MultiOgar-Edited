@@ -11,7 +11,7 @@ function LMS() {
     // this.packetLB = 48;
 
     // Config
-    this.matchLength = 45 * 60;         // Minutes (Do not remove " * 60" seconds)
+    this.matchLength = 25 * 60;         // Minutes (Do not remove " * 60" seconds)
     this.joinInterval = 5;              // Seconds
     this.reJoinInterval = 5;            // Minutes
     this.restartInterval = 7;           // Seconds
